@@ -5,9 +5,11 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "tcb framework:deploy"
   },
   "dependencies": {
+    "@cloudbase/cli": "^1.0.0",
     "@mdi/font": "^5.5.55",
     "axios": "^0.20.0",
     "core-js": "^3.6.5",
