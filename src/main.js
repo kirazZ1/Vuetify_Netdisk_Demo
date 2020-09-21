@@ -50,7 +50,7 @@ router.beforeEach((to, from, next) => {
   if (sessionStorage.getItem('token')==null) {//这里的判断条件应该换为识别是否有权限登录
     console.log(111);
     //alert('111');
-    if(to.path!='/login'&&to.path!='/forgetPassword')//需要再加个条件（to.path不是忘记密码的路由）
+    if(to.path!=='/login'&&to.path!=='/forgetPassword'&&to.path!=='/FirstLogin')//需要再加个条件（to.path不是忘记密码的路由）
       next({ path: '/login'});
     else{
       next();

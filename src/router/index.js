@@ -70,6 +70,15 @@ export default new Router({
                 title: '忘记密码' ,
 
             }
+        },
+        {
+            name: 'FirstLogin',
+            path: '/FirstLogin',
+            component: () => import(/* webpackChunkName: "login" */ '../components/FirstLogin.vue'),
+            meta: {
+                title: '首次登陆' ,
+
+            }
         }
     ]
 

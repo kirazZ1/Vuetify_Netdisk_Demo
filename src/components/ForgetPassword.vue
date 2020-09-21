@@ -17,7 +17,7 @@
           {{ message }}
         </v-alert>
         <v-container
-            align="center"
+
         >
           <v-breadcrumbs :items="items" large></v-breadcrumbs>
           <br>
@@ -196,7 +196,7 @@ export default {
       ],
       phoneRules:[      //手机号校验规则
         v => !!v || '手机号不能为空！',   //不能为空，如果为空则输入框下方以红色字体显示‘Name is required’
-        v => (v && v.length == 11) || '手机号长度不对',  //正则验证，不符合正则，则输入框下方以红色字体显示'Name must be less than 10 characters'
+        v => (v && v.length === 11) || '手机号长度不对',  //正则验证，不符合正则，则输入框下方以红色字体显示'Name must be less than 10 characters'
         v => (v && /^1[34578]\d{9}$/.test(this.userPhone))|| '手机号格式不对',//用正则表达式对手机号合法性进行验证
       ]
 
@@ -208,23 +208,13 @@ export default {
   //methods中还要添加一个计时器方法，传入参数为剩余秒数
   //计时器字段和按钮的倒计时是双向绑定关系，即按钮呈现的效果为：剩余x秒，且按钮此时不可用
   //2020-09-20  不做计时器了，操
-  //首先按照市面上应用的情况，计时器计算秒数和对应手机号同步
-  //直接让前端搞个60s计时没暂存地方，用户刷新变回原样，这样的计时器有意义？
-  //说白了，不想让前端接触太多数据，懂得都懂
-  //之前我听到更蠢的东西还是分页点一次换页发一次页码请求，我就笑了，十年前没有三大框架时你这样做没啥
-  //但现在nm都2020年了，还有一个企业云盘显示用户信息，企业本身能多少人，直接把数据全部请求到前端，前端加载到dom就可以
-  //vueui组件库不用，拿分页条写一堆按钮又丑，每点击一次用get传页码，反正我是笑了
-  //不是不知道你后台能处理，后台代码我也会写
-  //真就把前端只当一画画的啊，xswl
-  //那这样我tm还不如用jquery，模板一大堆，啥都不用自己写
-  //建议全体前端辞职当场失业，让ui干前端的工作，让后台去和ui扯皮
   methods: {
     firstStep() {//第一步：输入手机号并验证--点击下一步所触发的事件
-      if(this.userPhone==''){
+      if(this.userPhone===''){
         this.message='请输入手机号！';
         this.stepAlert=true;
         this.alert=true;
-      }else if(this.userPhone.length!=11){
+      }else if(this.userPhone.length!==11){
         this.message='手机号长度有误，请重新输入！';
         this.stepAlert=true;
         this.alert=true;
