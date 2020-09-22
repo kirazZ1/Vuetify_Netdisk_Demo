@@ -1,0 +1,17 @@
+{
+  "envId": "cloud-disk-test-1g694px38bc8791f",
+  "functionRoot": "./functions",
+  "functions": [],
+  "framework": {
+    "name": "cloud_disk",
+    "plugins": {
+      "vue": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "buildCommand": "npm run build",
+          "outputPath": "dist"
+        }
+      }
+    }
+  }
+}
