@@ -175,26 +175,28 @@ export default {
       button4:{icon:mdiRefresh },
       preSearch:'',
       search: '',
+      //2020-09-11
+      //面包屑导航
+      //效果：进入文件夹之后，面包屑栏增加一个返回上级的面包屑便于返回上一级目录
+      //思路：进入文件夹的函数中最后给  breadcrumb_items 增加一个元素
+      // {
+      //   text: 'Link 1',
+      //   disabled: false,
+      //   href: 'breadcrumbs_link_1',
+      // },
+      // {
+      //   text: 'Link 2',
+      //   disabled: true,
+      //   href: 'breadcrumbs_link_2',
+      // },
       breadcrumb_items: [
         {
           text: '我的文件',
           disabled: true,
           href: '',
-        },
-        //2020-09-11
-        //面包屑导航
-        //效果：进入文件夹之后，面包屑栏增加一个返回上级的面包屑便于返回上一级目录
-        //思路：进入文件夹的函数中最后给  breadcrumb_items 增加一个元素
-        // {
-        //   text: 'Link 1',
-        //   disabled: false,
-        //   href: 'breadcrumbs_link_1',
-        // },
-        // {
-        //   text: 'Link 2',
-        //   disabled: true,
-        //   href: 'breadcrumbs_link_2',
-        // },
+          id:''
+        }
+
       ],
       singleSelect: false,
       selected: [],//表格左边勾选选项（默认为空）
@@ -238,21 +240,21 @@ export default {
           modificationDate:'2020-01-01',	//上传时间
           includeDirects:[
             {
-              directID:'',        //文件夹ID
+              directID:'20001',        //文件夹ID
               name:'阅读笔记',		//文件夹名称
               size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
               modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
               includeDirects:[],
               includeFiles:[	//嵌套文件
                 {
-                  fileID:'',						//文件ID 用于后续操作
+                  fileID:'10008',						//文件ID 用于后续操作
                   type:'pdf',						//文件类型
                   name:'观水浒传有感',		 			//文件名
                   size:'10M',						//文件大小
                   modificationDate:'2020-01-01'	//更新时间
                 },
                 {
-                  fileID:'',						//文件ID 用于后续操作
+                  fileID:'10007',						//文件ID 用于后续操作
                   type:'pdf',						//文件类型
                   name:'观红楼梦有感',		 			//文件名
                   size:'10M',						//文件大小
@@ -261,21 +263,45 @@ export default {
               ]
             },
             {
-              directID:'',        //文件夹ID
+              directID:'20002',        //文件夹ID
               name:'阅读笔记2',		//文件夹名称
               size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
               modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-              includeDirects:[],
+              includeDirects:[
+                {
+                  directID:'20003',        //文件夹ID
+                  name:'阅读笔记2',		//文件夹名称
+                  size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+                  modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
+                  includeDirects:[],
+                  includeFiles:[	//嵌套文件
+                    {
+                      fileID:'10009',						//文件ID 用于后续操作
+                      type:'pdf',						//文件类型
+                      name:'观水浒传有感',		 			//文件名
+                      size:'10M',						//文件大小
+                      modificationDate:'2020-01-01'	//更新时间
+                    },
+                    {
+                      fileID:'10010',						//文件ID 用于后续操作
+                      type:'pdf',						//文件类型
+                      name:'观红楼梦有感',		 			//文件名
+                      size:'10M',						//文件大小
+                      modificationDate:'2020-01-01'	//更新时间
+                    }
+                  ]
+                }
+              ],
               includeFiles:[	//嵌套文件
                 {
-                  fileID:'',						//文件ID 用于后续操作
+                  fileID:'10005',						//文件ID 用于后续操作
                   type:'pdf',						//文件类型
                   name:'观水浒传有感',		 			//文件名
                   size:'10M',						//文件大小
                   modificationDate:'2020-01-01'	//更新时间
                 },
                 {
-                  fileID:'',						//文件ID 用于后续操作
+                  fileID:'10006',						//文件ID 用于后续操作
                   type:'pdf',						//文件类型
                   name:'观红楼梦有感',		 			//文件名
                   size:'10M',						//文件大小
@@ -286,28 +312,28 @@ export default {
           ],
           includeFiles:[				//文件夹内的内容，文件夹内可以嵌套文件夹
             {
-              fileID:"",						//文件ID 用于后续操作
+              fileID:"10001",						//文件ID 用于后续操作
               type:'pdf',						//文件类型
               name:'西游记',		 			//文件名
               size:'10M',						//文件大小
               modificationDate:'2020-01-01'	//更新时间
             },
             {
-              fileID:"",						//文件ID 用于后续操作
+              fileID:"10002",						//文件ID 用于后续操作
               type:'pdf',						//文件类型
               name:'红楼梦',		 			//文件名
               size:'10M',						//文件大小
               modificationDate:'2020-01-01'	//更新时间
             },
             {
-              fileID:"",						//文件ID 用于后续操作
+              fileID:"10003",						//文件ID 用于后续操作
               type:'pdf',						//文件类型
               name:'三国演义',		 			//文件名
               size:'10M',						//文件大小
               modificationDate:'2020-01-01'	//更新时间
             },
             {
-              fileID:"",						//文件ID 用于后续操作
+              fileID:"10004",						//文件ID 用于后续操作
               type:'pdf',						//文件类型
               name:'水浒传',		 			//文件名
               size:'10M',						//文件大小
@@ -326,7 +352,7 @@ export default {
   // },
   beforeMount() {
     //this.files=this.receiveFiles;
-    this.dataSolver(this.item);
+    this.files = this.dataSolver(this.item);
   },
   methods:{
     //编辑每页显示几条数据
@@ -360,49 +386,54 @@ export default {
         for(let i=0;i<this.breadcrumbNum;i++){
            this.breadcrumb_items[i]['disabled']=false;
         }
-        let breadcrumb ={"text": item.name,"disabled":true,"href":""} ;
+        let breadcrumb ={"text": item.name,"disabled":true,"href":"","id":item.id} ;
+        //alert(item.id);
         this.breadcrumb_items.push(breadcrumb);
         this.breadcrumbNum=this.breadcrumbNum+1;
 
 
-        this.dataSolver(item.include);
+        this.files = this.dataSolver(item.include);
         //console.log(item);
       }else{//其他文件
         alert(item.type);
       }
     },
-    breadcrumb(item){
+    breadcrumb(item) {
       //1.变更面包屑总数量以及显示
-       while(item.text !== this.breadcrumb_items[this.breadcrumb_items.length - 1]['text']){
-         let a = this.breadcrumb_items.pop();
-         this.breadcrumbNum--;
-         console.log(a);
-       }
-      //2.加载新的数据
-       let fileList = this.item;
-        this.breadcrumb_items[this.breadcrumb_items.length - 1]['disabled']=true;
-       if(this.breadcrumbNum===1){       //如果返回我的文件，则显示初始内容
-         // this.files=this.receiveFiles;
-         this.dataSolver(this.item);
-       }
-      else{     //如果是其他层级的子文件夹，执行以下操作
-         for(let i=1;i<this.breadcrumbNum;i++){  //i-面包屑层级索引，面包屑此时已经是最终状态，这里的目的是根据面包屑数据breadcrumb_items中的text项对文件夹进行逐级访问
-             let folderName=this.breadcrumb_items[i]['text'];    //获取面包屑中文件名
-           for(let j=0;j<=(fileList.length-1);j++){        //内层循环，主要用来匹配文件夹
-             if(fileList[j]['name']===folderName){         //如果fileList[j]['name']===folderName，证明访问的路径经过当前文件夹
-               fileList=fileList[j]['include'];            //把文件夹中的include付给暂存文件列表变量fileList
-             }
-           }
-         }
-         this.dataSolver(fileList);
+      //alert(item.id);
+      while (item.id !== this.breadcrumb_items[this.breadcrumb_items.length - 1]['id']) {
+        this.breadcrumb_items.pop();
+
+        this.breadcrumbNum--;
       }
-      // this.files=fileList;
+      //alert( this.breadcrumbNum);
+      //2.加载新的数据
+      let fileList = this.dataSolver(this.item);
+      this.breadcrumb_items[this.breadcrumb_items.length - 1]['disabled'] = true;
 
+      if (this.breadcrumbNum === 1) {       //如果返回我的文件，则显示初始内容
+                                            // this.files=this.receiveFiles;
 
-      // let a = this.breadcrumb_items[this.breadcrumb_items.length - 1]['text'];
-      // alert(a);
-        //this.dataSolver(item.include);
-      console.log(item);
+        this.files = this.dataSolver(this.item);
+      }else{     //如果是其他层级的子文件夹，执行以下操作
+        //let folderName = this.breadcrumb_items[1]['text'];
+        //let folderId = this.this.breadcrumb_items[1]['id'];
+        console.log(this.breadcrumb_items.length);
+        for(let i=0;i<this.breadcrumb_items.length;i++){
+          let folderName=this.breadcrumb_items[i]['text'];    //获取面包屑中文件名
+          let folderId=this.breadcrumb_items[i]['id'];
+          console.log(folderName);
+          console.log(folderId);
+          for(let j=0;j<=(fileList.length-1);j++){
+            if(fileList[j]['name']===folderName&&fileList[j]['id']===folderId){
+              fileList=fileList[j]['include'];
+              fileList=this.dataSolver(fileList);
+            }
+          }
+          this.files=fileList;
+        }
+      }
+         
     },
     dataSolver(item){//用于将后台传来json处理成前端可用的字符串（自力更生，丰衣足食）,item为文件夹
       //收到的数据格式
@@ -480,7 +511,7 @@ export default {
         expectJson.push(jsonItem);
       }
         // console.log(expectJson);
-        this.files=expectJson;
+        return expectJson;
       }
 
     }
