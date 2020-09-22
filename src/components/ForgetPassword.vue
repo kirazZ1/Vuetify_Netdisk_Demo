@@ -46,7 +46,7 @@
                     <v-text-field
                         v-model="userPhone"
                         :counter="11"
-                        :rules="phoneRules"
+                        :rules="[rules.required, rules.min,rules.format]"
                         label="手机号"
                         required
                     ></v-text-field>
@@ -66,14 +66,10 @@
               </v-stepper-content>
 
               <v-stepper-content step="2">
-                <v-form
-                    ref="form"
-                    v-model="valid"
-                    lazy-validation
-                >
+
                   <v-text-field
                       v-model="userPhone"
-                      :rules="[rules.required, rules.min,rules.format]"
+
                       label="手机号"
                       required
                       disabled
@@ -105,7 +101,7 @@
                       <v-btn text large color="primary">点击获取手机验证码</v-btn>
                     </v-col>
                   </v-row>
-                </v-form>
+
 
              
 
