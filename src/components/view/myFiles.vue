@@ -3,7 +3,7 @@
 
     <v-container class="grey lighten-5">
       <v-row>
-        <v-col md="5">
+        <v-col md="6">
           <v-row
 
               class="grey lighten-5"
@@ -21,18 +21,21 @@
             <div class="ma-1 pa-1">
               <v-btn  color="primary" @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
             </div>
+            <div class="ma-1 pa-1" >
+              <v-btn  color="primary" v-show="backButton" @click="Refresh()"><v-icon dark left>mdi-arrow-left</v-icon>返回</v-btn>
+            </div>
           </v-row>
         </v-col>
         <v-col
             md="2"
-            offset-md="5"
+            offset-md="4"
         >
                   <v-text-field
                       v-model="preSearch"
                       color="primary  "
                       hide-details
                       style="max-width: 250px;"
-                      clearable
+
                   >
                     <template
                         v-if="$vuetify.breakpoint.mdAndUp"
@@ -54,7 +57,7 @@
       </v-row>
       <v-row>
         <div>
-          <v-breadcrumbs :items="breadcrumb_items">
+          <v-breadcrumbs :items="breadcrumb_items" v-show="showBreadcrumb">
             <template v-slot:item="{ item }">
               <v-breadcrumbs-item
                   :href="item.href"
@@ -67,6 +70,7 @@
               <v-icon>mdi-chevron-right</v-icon>
             </template>
           </v-breadcrumbs>
+          <v-breadcrumbs v-show="showBreadcrumb2"><v-breadcrumbs-item>搜索结果</v-breadcrumbs-item></v-breadcrumbs>
         </div>
       </v-row>
       <v-divider></v-divider>
@@ -164,8 +168,10 @@ import Bus from '../common/bus.js'  //父子组件通信
 import {
   mdiCloudUpload,
   mdiCloudDownload,
+
   mdiRefresh
 } from '@mdi/js'    //导入图标
+
 export default {
   name: "myFile",
   data(){
@@ -175,6 +181,7 @@ export default {
       button4:{icon:mdiRefresh },
       preSearch:'',
       search: '',
+      backButton:false,
       //2020-09-11
       //面包屑导航
       //效果：进入文件夹之后，面包屑栏增加一个返回上级的面包屑便于返回上一级目录
@@ -213,7 +220,9 @@ export default {
       ],
       files:null,   //显示在界面的文件信息
       breadcrumbNum:1,
-
+      showBreadcrumb:true,
+      showBreadcrumb2:false,
+      resultArray:[],
       //接收后台传来的文件信息的变量receiveFiles
 
       items: [
@@ -348,12 +357,25 @@ export default {
   },
   // updated() {//搜索功能在这里执行
   //   if()
-  //
+  //this.files=this.dataSolver(this.item);
+  // console.log("111");
+  // this.breadcrumb_items=[];
+  // this.breadcrumbNum=1;
+  // this.showBreadcrumb=true;
+  // this.showBreadcrumb2=false;
+  // let obj={
+  //   text: '我的文件',
+  //   disabled: true,
+  //   href: '',
+  //   id:''
+  // };
+  // this.breadcrumb_items.push(obj);
   // },
   beforeMount() {
     //this.files=this.receiveFiles;
     this.files = this.dataSolver(this.item);
   },
+
   methods:{
     //编辑每页显示几条数据
     editItem (item) {
@@ -361,9 +383,48 @@ export default {
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
+
     //查找文件
     SearchFile(){
-      //preSearch存放待查询数据,点击按钮触发函数进行查找操作（把数据用axios发送给后端）
+      //let name =this.preSearch;
+      let array=[];
+      let resultView=[];
+      this.resultArray=[];
+      let reg=new RegExp(".*"+this.preSearch+".*","g");
+      array.push(this.item);
+      this.parseTreeJson(array);
+      console.log(this.resultArray);
+
+      for(let i=0;i<this.resultArray.length;i++){
+        if(reg.test(this.resultArray[i].name)){//正则表达式匹配
+          // {
+          //     fileID:"10001",						//文件ID 用于后续操作
+          //     type:'pdf',						//文件类型
+          //     name:'西游记',		 			//文件名
+          //     size:'10M',						//文件大小
+          //     modificationDate:'2020-01-01'	//更新时间
+          // }
+          // {
+          //       id:'',
+          //       type:'pdf',						//文件类型
+          //       name:'西游记',		 			//文件名
+          //       size:'10M',						//文件大小
+          //       modificationDate:'2020-01-01'	//更新时间
+          // }
+          let obj={
+                id:this.resultArray[i].fileID,
+                type:this.resultArray[i].type,
+                name:this.resultArray[i].name,
+                size:this.resultArray[i].size,
+                modificationDate:this.resultArray[i].modificationDate,
+          };
+          resultView.push(obj);
+        }
+      }
+      this.showBreadcrumb=false;
+      this.showBreadcrumb2=true;
+      this.files=resultView;
+      this.backButton=true;
     },
     //删除文件
     deleteItem (item) {
@@ -433,7 +494,7 @@ export default {
           this.files=fileList;
         }
       }
-         
+
     },
     dataSolver(item){//用于将后台传来json处理成前端可用的字符串（自力更生，丰衣足食）,item为文件夹
       //收到的数据格式
@@ -512,6 +573,26 @@ export default {
       }
         // console.log(expectJson);
         return expectJson;
+      }
+    },
+    parseTreeJson(item){//对json树进行遍历获取根节点（递归实现）item-传入的json字符串数组(后台发来的，未经过处理的json字符串，需要用数组包装后调用)
+      //可以知道，所有文件都是根节点，文件夹和文件的区别在于type字段是否为空
+      //let resultArray = [];
+
+      for(let index = 0;index<item.length;index++){
+        const element =item[index];         //逐级访问
+        if(element.type===undefined){//文件夹(两部分 includeDirects  includeFiles)
+          if(element.includeFiles!==null){//不是空文件夹
+              for(let i=0;i<element.includeFiles.length;i++){
+                this.resultArray.push(element.includeFiles[i]);
+              }
+          }
+          if(element.includeDirects!=null){
+            this.parseTreeJson(element.includeDirects);
+          }
+        }else{//文件
+          this.resultArray.push(element);
+        }
       }
 
     }
