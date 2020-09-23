@@ -66,7 +66,7 @@ export default {
      Bus.$on('msg2', (e) => { //点击按钮侧导航栏开关
     //   //路由跳转的相关语句
     //   //alert(e);
-      if(e=='myFiles'){
+      if(e==='myFiles'){
         me.$router.push({  //核心语句
           path: '/dashboard/myFiles' ,   //跳转的路径
         })
@@ -74,7 +74,7 @@ export default {
     //     this.showMyGroups=false;
     //     this.showViewShare=false;
     //     this.showTrash=false;
-      }else if(e=='myGroups'){
+      }else if(e==='myGroups'){
     //     this.showMyFiles=false;
     //     this.showMyGroups=true;
     //     this.showViewShare=false;
@@ -82,7 +82,7 @@ export default {
         me.$router.push({  //核心语句
           path: '/dashboard/myGroups' ,   //跳转的路径
         })
-      }else if(e=='viewShare') {
+      }else if(e==='viewShare') {
     //     this.showMyFiles = false;
     //     this.showMyGroups = false;
     //     this.showViewShare = true;
@@ -90,7 +90,7 @@ export default {
         me.$router.push({  //核心语句
           path: '/dashboard/viewShare' ,   //跳转的路径
         })
-      }else if(e=='trash'){
+      }else if(e==='trash'){
     //     this.showMyFiles=false;
     //     this.showMyGroups=false;
     //     this.showViewShare=false;
@@ -103,12 +103,12 @@ export default {
      }
     );
      //父组件接受局部刷新请求进行路由跳转
-    Bus.$on('refresh_myFile',(e) =>{
-      console.log(e);
-      me.$router.push({  //核心语句
-        path: '/dashboard/myFiles' ,   //跳转的路径
-      })
-    })
+    // Bus.$on('refresh_myFile',(e) =>{
+    //   console.log(e);
+    //   me.$router.push({  //核心语句
+    //     path: '/dashboard/myFiles' ,   //跳转的路径
+    //   })
+    // })
   },
   data(){
     return{

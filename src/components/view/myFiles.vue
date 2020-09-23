@@ -1,7 +1,7 @@
 <template>
   <div>
 
-    <v-container class="grey lighten-5">
+    <v-container >
       <v-row>
         <v-col md="6">
           <v-row
@@ -10,19 +10,19 @@
               style="height: 50px;"
           >
             <div class="ma-1 pa-1">
-                 <v-btn  color="primary"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
+                 <v-btn v-show="uploadButton" color="primary"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
             </div>
             <div class="ma-1 pa-1">
                   <v-btn  color="primary"><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
             </div>
             <div class="ma-1 pa-1">
-                   <v-btn  color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
+                   <v-btn v-show="newFolderButton" color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
             </div>
             <div class="ma-1 pa-1">
               <v-btn  color="primary" @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
             </div>
             <div class="ma-1 pa-1" >
-              <v-btn  color="primary" v-show="backButton" @click="Refresh()"><v-icon dark left>mdi-arrow-left</v-icon>返回</v-btn>
+              <v-btn  color="primary" v-show="backButton" @click="Back()"><v-icon dark left>mdi-arrow-left</v-icon>返回</v-btn>
             </div>
           </v-row>
         </v-col>
@@ -108,7 +108,7 @@
               medium
               v-bind="attrs"
               v-on="on"
-              @click="deleteItem(item)"
+              @click="shareItem(item)"
           >
             mdi-share
           </v-icon>
@@ -164,7 +164,7 @@
   </div>
 </template>
 <script>
-import Bus from '../common/bus.js'  //父子组件通信
+//import Bus from '../common/bus.js'  //父子组件通信
 import {
   mdiCloudUpload,
   mdiCloudDownload,
@@ -182,6 +182,8 @@ export default {
       preSearch:'',
       search: '',
       backButton:false,
+      newFolderButton:true,
+      uploadButton:true,
       //2020-09-11
       //面包屑导航
       //效果：进入文件夹之后，面包屑栏增加一个返回上级的面包屑便于返回上一级目录
@@ -387,44 +389,51 @@ export default {
     //查找文件
     SearchFile(){
       //let name =this.preSearch;
-      let array=[];
-      let resultView=[];
-      this.resultArray=[];
-      let reg=new RegExp(".*"+this.preSearch+".*","g");
-      array.push(this.item);
-      this.parseTreeJson(array);
-      console.log(this.resultArray);
+      if(this.preSearch===''){
+        this.files=[];
+      }else{
+        let array=[];
+        let resultView=[];
+        this.resultArray=[];
+        let reg=new RegExp(".*"+this.preSearch+".*","g");
+        array.push(this.item);
+        this.parseTreeJson(array);
+        console.log(this.resultArray);
 
-      for(let i=0;i<this.resultArray.length;i++){
-        if(reg.test(this.resultArray[i].name)){//正则表达式匹配
-          // {
-          //     fileID:"10001",						//文件ID 用于后续操作
-          //     type:'pdf',						//文件类型
-          //     name:'西游记',		 			//文件名
-          //     size:'10M',						//文件大小
-          //     modificationDate:'2020-01-01'	//更新时间
-          // }
-          // {
-          //       id:'',
-          //       type:'pdf',						//文件类型
-          //       name:'西游记',		 			//文件名
-          //       size:'10M',						//文件大小
-          //       modificationDate:'2020-01-01'	//更新时间
-          // }
-          let obj={
-                id:this.resultArray[i].fileID,
-                type:this.resultArray[i].type,
-                name:this.resultArray[i].name,
-                size:this.resultArray[i].size,
-                modificationDate:this.resultArray[i].modificationDate,
-          };
-          resultView.push(obj);
+        for(let i=0;i<this.resultArray.length;i++){
+          if(reg.test(this.resultArray[i].name)){//正则表达式匹配
+            // {
+            //     fileID:"10001",						//文件ID 用于后续操作
+            //     type:'pdf',						//文件类型
+            //     name:'西游记',		 			//文件名
+            //     size:'10M',						//文件大小
+            //     modificationDate:'2020-01-01'	//更新时间
+            // }
+            // {
+            //       id:'',
+            //       type:'pdf',						//文件类型
+            //       name:'西游记',		 			//文件名
+            //       size:'10M',						//文件大小
+            //       modificationDate:'2020-01-01'	//更新时间
+            // }
+            let obj={
+              id:this.resultArray[i].fileID,
+              type:this.resultArray[i].type,
+              name:this.resultArray[i].name,
+              size:this.resultArray[i].size,
+              modificationDate:this.resultArray[i].modificationDate,
+            };
+            resultView.push(obj);
+          }
         }
+        this.files=resultView;
       }
       this.showBreadcrumb=false;
       this.showBreadcrumb2=true;
-      this.files=resultView;
+
       this.backButton=true;
+      this.newFolderButton=false;
+      this.uploadButton=false;
     },
     //删除文件
     deleteItem (item) {
@@ -434,7 +443,8 @@ export default {
     //刷新文件列表
     Refresh(){
       //alert("111");
-      Bus.$emit('refresh_myFile', '重新加载视图部分组件');
+      // Bus.$emit('refresh_myFile', '重新加载视图部分组件');
+      //后来想了一下可能没必要，直接向后台发请求要新的数据就好了
     },
     clickFile(item){//点击文件触发的事件
       //根据type字段来识别是否为文件夹
@@ -595,6 +605,31 @@ export default {
         }
       }
 
+    },
+    Back(){
+      //初始化数据
+      this.files=this.dataSolver(this.item);
+      //恢复面包屑
+      this.breadcrumbNum=1;
+      this.breadcrumb_items=[];
+      let obj={
+        text: '我的文件',
+        disabled: true,
+        href: '',
+        id:''
+      };
+      this.breadcrumb_items.push(obj);
+      //调整按钮显示
+      this.showBreadcrumb=true;
+      this.showBreadcrumb2=false;
+      this.uploadButton=true;
+      this.newFolderButton=true;
+      this.backButton=false;
+      this.preSearch='';
+    },
+    shareItem(item){
+      console.log(item);
+      console.log(this.selected);
     }
   }
 }
