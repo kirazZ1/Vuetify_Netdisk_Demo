@@ -2,40 +2,83 @@
   <div>
 
     <v-container >
+      <v-card>
       <v-row>
         <v-col md="6">
-          <v-row
-
-              class="grey lighten-5"
-              style="height: 50px;"
-          >
-            <div class="ma-1 pa-1">
-                 <v-btn v-show="uploadButton" color="primary"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
-            </div>
-            <div class="ma-1 pa-1">
-                  <v-btn  color="primary"><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
-            </div>
-            <div class="ma-1 pa-1">
-                   <v-btn v-show="newFolderButton" color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
-            </div>
-            <div class="ma-1 pa-1">
-              <v-btn  color="primary" @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
-            </div>
+          <v-row>
+            <div class="ma-1 pa-1"></div>
             <div class="ma-1 pa-1" >
-              <v-btn  color="primary" v-show="backButton" @click="Back()"><v-icon dark left>mdi-arrow-left</v-icon>返回</v-btn>
+              <v-btn  color="primary"  v-show="backButton" @click="Back()">
+                <v-icon dark left>mdi-arrow-left</v-icon>
+                返回
+              </v-btn>
             </div>
+            <div class="ma-1 pa-1"></div>
+            <div class="ma-1 pa-1">
+                 <v-btn v-show="uploadButton"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
+            </div>
+            <div class="ma-1 pa-1">
+                  <v-btn  color="primary" ><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
+            </div>
+            <div class="ma-1 pa-1">
+                   <v-btn v-show="newFolderButton"  color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
+            </div>
+            <div class="ma-1 pa-1">
+              <v-btn  color="primary"  @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
+            </div>
+
           </v-row>
         </v-col>
+
+        <v-dialog
+            v-model="uploadDialog"
+            persistent max-width="600px"
+        >
+          <v-alert
+              v-model="uploadAlert"
+              dismissible
+              type="error"
+              border="left"
+              elevation="2"
+              colored-border
+              transition="scale-transition"
+          >
+            {{uploadMessage}}
+          </v-alert>
+          <v-card>
+            <v-card-title>
+              <span class="headline">上传文件</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-text-field
+                    v-model="uploadFileName"
+                    :counter="10"
+                    label="新文件名"
+                    required
+                ></v-text-field>
+                <v-file-input  label="上传您的文件" id="upload" outlined dense></v-file-input>
+
+              </v-container>
+              <small>*请输入新的文件名并选择文件后点击提交</small>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="uploadDialog = false">Close</v-btn>
+              <v-btn color="blue darken-1" text @click="uploadFile()">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <v-col
             md="2"
-            offset-md="4"
+            offset-md="3"
         >
                   <v-text-field
                       v-model="preSearch"
                       color="primary  "
                       hide-details
                       style="max-width: 250px;"
-
+                      @keyup.enter="SearchFile"
                   >
                     <template
                         v-if="$vuetify.breakpoint.mdAndUp"
@@ -55,14 +98,17 @@
                   </v-text-field>
         </v-col>
       </v-row>
+      </v-card>
+
       <v-row>
-        <div>
+
           <v-breadcrumbs :items="breadcrumb_items" v-show="showBreadcrumb">
             <template v-slot:item="{ item }">
               <v-breadcrumbs-item
                   :href="item.href"
+                  large
               >
-                <v-btn text large color="primary"  :disabled="item.disabled" @click="breadcrumb(item)">{{ item.text }} </v-btn>
+                <v-btn text x-large color="primary"  :disabled="item.disabled" @click="breadcrumb(item)">{{ item.text }} </v-btn>
 
               </v-breadcrumbs-item>
             </template>
@@ -71,7 +117,7 @@
             </template>
           </v-breadcrumbs>
           <v-breadcrumbs v-show="showBreadcrumb2"><v-breadcrumbs-item>搜索结果</v-breadcrumbs-item></v-breadcrumbs>
-        </div>
+
       </v-row>
       <v-divider></v-divider>
 
@@ -179,11 +225,13 @@ export default {
       button1:{icon:mdiCloudUpload},
       button2:{icon:mdiCloudDownload },
       button4:{icon:mdiRefresh },
-      preSearch:'',
-      search: '',
-      backButton:false,
-      newFolderButton:true,
-      uploadButton:true,
+      preSearch:'',  //搜索文本框
+      backButton:false, //是否显示返回按钮
+      newFolderButton:true,//是否显示新建文件夹按钮
+      uploadButton:true,//是否显示上传文件按钮
+      uploadDialog:false,
+      //upload:null,
+      uploadFileName:'',
       //2020-09-11
       //面包屑导航
       //效果：进入文件夹之后，面包屑栏增加一个返回上级的面包屑便于返回上一级目录
@@ -198,7 +246,7 @@ export default {
       //   disabled: true,
       //   href: 'breadcrumbs_link_2',
       // },
-      breadcrumb_items: [
+      breadcrumb_items: [ //面包屑的数据项
         {
           text: '我的文件',
           disabled: true,
@@ -207,9 +255,9 @@ export default {
         }
 
       ],
-      singleSelect: false,
-      selected: [],//表格左边勾选选项（默认为空）
-      headers: [
+      singleSelect: false,    //表格单选
+      selected: [],   //表格左边勾选选项（默认为空）
+      headers: [    //表格标题
         {
           text: '文件名',
           align: 'start',
@@ -221,9 +269,9 @@ export default {
         { text: '操作', value: 'action' }
       ],
       files:null,   //显示在界面的文件信息
-      breadcrumbNum:1,
-      showBreadcrumb:true,
-      showBreadcrumb2:false,
+      breadcrumbNum:1,    //面包屑项个数（最少为1）
+      showBreadcrumb:true,//是否显示导航面包屑
+      showBreadcrumb2:false,//是否显示搜索结果面包屑
       resultArray:[],
       //接收后台传来的文件信息的变量receiveFiles
 
@@ -244,7 +292,7 @@ export default {
         txt: 'mdi-file-document-outline',
         xls: 'mdi-file-excel',
       },
-      item:{
+      item:{//后台返回给前台的文件数据
           directID:'',        //文件夹ID
           name:'四大名著',		//文件夹名称
           size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
@@ -351,28 +399,16 @@ export default {
               modificationDate:'2020-01-01'	//更新时间
             },
 
-          ]
+          ],
 
-        }
-
+        },
+      //uploadFile:null,
+      formData:null,
+      uploadMessage:'',
+      uploadAlert:false
     }
   },
-  // updated() {//搜索功能在这里执行
-  //   if()
-  //this.files=this.dataSolver(this.item);
-  // console.log("111");
-  // this.breadcrumb_items=[];
-  // this.breadcrumbNum=1;
-  // this.showBreadcrumb=true;
-  // this.showBreadcrumb2=false;
-  // let obj={
-  //   text: '我的文件',
-  //   disabled: true,
-  //   href: '',
-  //   id:''
-  // };
-  // this.breadcrumb_items.push(obj);
-  // },
+
   beforeMount() {
     //this.files=this.receiveFiles;
     this.files = this.dataSolver(this.item);
@@ -402,20 +438,6 @@ export default {
 
         for(let i=0;i<this.resultArray.length;i++){
           if(reg.test(this.resultArray[i].name)){//正则表达式匹配
-            // {
-            //     fileID:"10001",						//文件ID 用于后续操作
-            //     type:'pdf',						//文件类型
-            //     name:'西游记',		 			//文件名
-            //     size:'10M',						//文件大小
-            //     modificationDate:'2020-01-01'	//更新时间
-            // }
-            // {
-            //       id:'',
-            //       type:'pdf',						//文件类型
-            //       name:'西游记',		 			//文件名
-            //       size:'10M',						//文件大小
-            //       modificationDate:'2020-01-01'	//更新时间
-            // }
             let obj={
               id:this.resultArray[i].fileID,
               type:this.resultArray[i].type,
@@ -487,8 +509,6 @@ export default {
 
         this.files = this.dataSolver(this.item);
       }else{     //如果是其他层级的子文件夹，执行以下操作
-        //let folderName = this.breadcrumb_items[1]['text'];
-        //let folderId = this.this.breadcrumb_items[1]['id'];
         console.log(this.breadcrumb_items.length);
         for(let i=0;i<this.breadcrumb_items.length;i++){
           let folderName=this.breadcrumb_items[i]['text'];    //获取面包屑中文件名
@@ -630,7 +650,57 @@ export default {
     shareItem(item){
       console.log(item);
       console.log(this.selected);
+    },
+    uploadFile(){
+      console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
+      if(this.uploadFileName===''){
+        //alert("请输入文件名");
+        this.uploadMessage="请输入文件名！";
+        this.uploadAlert=true;
+      }else if(document.querySelector("#upload").files[0]===undefined){
+        //alert("请选择待上传的文件");
+        this.uploadMessage="请选择待上传的文件！";
+        this.uploadAlert=true;
+      }
+      //要考虑当前的文件是否会造成重复（类型相同，文件名相同）
+          //新文件名是用户给的，需要检测当前层的文件夹有没有重复的文件
+      else{
+        //console.log(document.querySelector("#upload"));
+        let fileName = document.querySelector("#upload").files[0].name;
+        let type=fileName.replace(/.+\./,"");       //匹配后缀名
+        console.log(type);
+        let flag=0;
+        for(let i=0;i<this.files.length;i++){
+          if(this.uploadFileName===this.files[i].name&&type===this.files[i].type){
+               flag++;
+          }
+        }
+        if(flag===0){
+          alert("可以上传");
+          //在这里发送请求给后端接口
+          //上传的内容用formData封装（父文件夹id，文件名和文件）
+          //父文件夹id获取
+          // let folderID = this.breadcrumb_items[this.breadcrumbNum-1].id
+          // if(folderID===""){
+          //     folderID = this.item.directID;
+          // }
+          // let a = document.querySelector("#upload").files[0];//用console.log进行测试，成功取到文件
+          // let formData = new window.FormData() // vue 中使用 window.FormData(),否则会报 'FormData isn't definded'
+          // formData.append('userFile', a);
+          // console.log(formData);//输出结果
+        }else{
+          //alert("有同名文件");
+          this.uploadMessage="文件夹中存在同名文件，请重新命名！";
+          this.uploadAlert=true;
+        }
+        // let strArray = fileName.split(".");
+        // let fileType = strArray.pop();
+        // console.log(fileType);
+        //alert("可以上传");
+
+      }
     }
+
   }
 }
 </script>
