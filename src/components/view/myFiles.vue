@@ -4,31 +4,31 @@
     <v-container >
       <v-card>
       <v-row>
-        <v-col md="6">
-          <v-row>
-            <div class="ma-1 pa-1"></div>
-            <div class="ma-1 pa-1" >
-              <v-btn  color="primary"  v-show="backButton" @click="Back()">
-                <v-icon dark left>mdi-arrow-left</v-icon>
-                返回
-              </v-btn>
-            </div>
-            <div class="ma-1 pa-1"></div>
-            <div class="ma-1 pa-1">
-                 <v-btn v-show="uploadButton"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
-            </div>
-            <div class="ma-1 pa-1">
-                  <v-btn  color="primary" ><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
-            </div>
-            <div class="ma-1 pa-1">
-                   <v-btn v-show="newFolderButton"  color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
-            </div>
-            <div class="ma-1 pa-1">
-              <v-btn  color="primary"  @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
-            </div>
+          <v-col md="6">
+            <v-row>
+              <div class="ma-1 pa-1"></div>
+              <div class="ma-1 pa-1" >
+                <v-btn  color="primary"  v-show="backButton" @click="Back()">
+                  <v-icon dark left>mdi-arrow-left</v-icon>
+                  返回
+                </v-btn>
+              </div>
+              <div class="ma-1 pa-1"></div>
+              <div class="ma-1 pa-1">
+                   <v-btn v-show="uploadButton"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
+              </div>
+              <div class="ma-1 pa-1">
+                    <v-btn  color="primary" ><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
+              </div>
+              <div class="ma-1 pa-1">
+                     <v-btn v-show="newFolderButton"  color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
+              </div>
+              <div class="ma-1 pa-1">
+                <v-btn  color="primary"  @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
+              </div>
 
-          </v-row>
-        </v-col>
+            </v-row>
+          </v-col>
 
         <v-dialog
             v-model="uploadDialog"
@@ -64,8 +64,50 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="uploadDialog = false">Close</v-btn>
-              <v-btn color="blue darken-1" text @click="uploadFile()">Save</v-btn>
+              <v-btn color="blue darken-1" text @click="uploadDialog = false">关闭</v-btn>
+              <v-btn color="blue darken-1" text @click="uploadFile()">上传</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog
+            v-model="infoDialog"
+            max-width="600px"
+        >
+          <v-card>
+            <v-card-title>
+              <span class="headline">文件详情</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+              <v-list three-line subheader>
+
+
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-list-item-title>文件名</v-list-item-title>
+                    <v-list-item-subtitle>{{fileInfo.name}}</v-list-item-subtitle>
+                  </v-list-item-content>
+                  <v-list-item-content>
+                    <v-list-item-title>类型</v-list-item-title>
+                    <v-list-item-subtitle>{{fileInfo.type}}</v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-content>
+                    <v-list-item-title>文件大小</v-list-item-title>
+                    <v-list-item-subtitle>{{fileInfo.size}}</v-list-item-subtitle>
+                  </v-list-item-content>\
+                  <v-list-item-content>
+                    <v-list-item-title>更新日期</v-list-item-title>
+                    <v-list-item-subtitle>{{fileInfo.modificationDate}}</v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="infoDialog = false">关闭</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -405,7 +447,17 @@ export default {
       //uploadFile:null,
       formData:null,
       uploadMessage:'',
-      uploadAlert:false
+      uploadAlert:false,
+      fileInfo:
+      {
+            id:'',
+            type:'',						//文件类型
+            name:'',		 			//文件名
+            size:'',						//文件大小
+            modificationDate:''	//更新时间
+      }
+      ,
+      infoDialog:false
     }
   },
 
@@ -488,7 +540,8 @@ export default {
         this.files = this.dataSolver(item.include);
         //console.log(item);
       }else{//其他文件
-        alert(item.type);
+        this.fileInfo=item;
+        this.infoDialog=true;
       }
     },
     breadcrumb(item) {
