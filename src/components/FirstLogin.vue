@@ -193,6 +193,17 @@ export default {
       }
     }
   },
+  mounted() {
+    ///user/firstLogin/getPhone?
+    this.axios.post('/api/user/firstLogin/getPhone', {
+        token:sessionStorage.getItem('token')
+    }).then(function (response) {
+        console.log(response);
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+  },
   methods: {
     firstStep() {
       //发送请求验证码  调用sendNum

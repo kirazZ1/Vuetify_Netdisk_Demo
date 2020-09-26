@@ -105,7 +105,7 @@ export default {
     id: null,
     idRules: [
       v => !!v || '账号不能为空！',   //不能为空，如果为空则输入框下方以红色字体显示‘Name is required’
-      v => (v && v.length <= 10) || 'Name must be less than 10 characters',  //正则验证，不符合正则，则输入框下方以红色字体显示'Name must be less than 10 characters'
+      v => (v && v.length <= 11) || 'Name must be less than 10 characters',  //正则验证，不符合正则，则输入框下方以红色字体显示'Name must be less than 10 characters'
     ],
     password: null,
     passwordRules: [
@@ -119,7 +119,7 @@ export default {
   methods:{
     Login(id,password){
       //alert(id);
-      var me=this;
+      let me=this;
       if(id==null){
         me.message = '账号不能为空！';
         me.alert = true
@@ -131,18 +131,20 @@ export default {
       }
       else {
 
-        this.axios.post('/api/login', {
+        this.axios.post('/api/cloud/login', {
           userName: id,
           userPassword: password
         }).then(function (response) {
 
-          console.log(response);
-          if (response.data.token != null) {
-            sessionStorage.setItem("token", JSON.stringify(response));
+          console.log(response.data);
+          if (response.data.data.token != null) {
+            sessionStorage.setItem("token", JSON.stringify(response.data.data.token));
             console.log(sessionStorage.getItem('token'));
-
+            sessionStorage.setItem("firstLogin", JSON.stringify(response.data.data.firstLogin));
+            sessionStorage.setItem("permission", JSON.stringify(response.data.data.permission));
             me.loginDash();
-          } else {
+            //console.log(parseInt(sessionStorage.getItem('firstLogin')));
+          }else {
             me.message = '您的账号或密码有误，请重新输入';
             me.alert = true
           }

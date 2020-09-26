@@ -6,6 +6,9 @@
       <v-row>
           <v-col md="6">
             <v-row>
+
+
+              <div class="ma-1 pa-1"></div>
               <div class="ma-1 pa-1"></div>
               <div class="ma-1 pa-1" >
                 <v-btn  color="primary"  v-show="backButton" @click="Back()">
@@ -13,7 +16,6 @@
                   返回
                 </v-btn>
               </div>
-              <div class="ma-1 pa-1"></div>
               <div class="ma-1 pa-1">
                    <v-btn v-show="uploadButton"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
               </div>
@@ -21,11 +23,12 @@
                     <v-btn  color="primary" ><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
               </div>
               <div class="ma-1 pa-1">
-                     <v-btn v-show="newFolderButton"  color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
-              </div>
-              <div class="ma-1 pa-1">
                 <v-btn  color="primary"  @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
               </div>
+              <div class="ma-1 pa-1">
+                     <v-btn v-show="newFolderButton"  @click="newFolderDialog=true" color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
+              </div>
+
 
             </v-row>
           </v-col>
@@ -69,6 +72,45 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+<!--        <v-alert-->
+<!--            v-model="uploadAlert"-->
+<!--            dismissible-->
+<!--            type="error"-->
+<!--            border="left"-->
+<!--            elevation="2"-->
+<!--            colored-border-->
+<!--            transition="scale-transition"-->
+<!--        >-->
+<!--          {{uploadMessage}}-->
+<!--        </v-alert>-->
+        <v-dialog
+            v-model="newFolderDialog"
+            persistent max-width="600px"
+        >
+        <v-card>
+          <v-card-title>
+            <span class="headline">新建文件夹</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-text-field
+                  v-model="newFolderName"
+                  :counter="10"
+                  label="新文件夹名"
+                  required
+              ></v-text-field>
+
+
+            </v-container>
+            <small>*请输入新的文件夹名点击提交</small>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue darken-1" text @click="newFolderDialog = false">关闭</v-btn>
+            <v-btn color="blue darken-1" text @click="newFolder()">创建</v-btn>
+          </v-card-actions>
+        </v-card>
+        </v-dialog>
         <v-dialog
             v-model="infoDialog"
             max-width="600px"
@@ -96,7 +138,7 @@
                   <v-list-item-content>
                     <v-list-item-title>文件大小</v-list-item-title>
                     <v-list-item-subtitle>{{fileInfo.size}}</v-list-item-subtitle>
-                  </v-list-item-content>\
+                  </v-list-item-content>
                   <v-list-item-content>
                     <v-list-item-title>更新日期</v-list-item-title>
                     <v-list-item-subtitle>{{fileInfo.modificationDate}}</v-list-item-subtitle>
@@ -457,7 +499,9 @@ export default {
             modificationDate:''	//更新时间
       }
       ,
-      infoDialog:false
+      infoDialog:false,
+      newFolderDialog:false,
+      newFolderName:''
     }
   },
 
@@ -511,14 +555,22 @@ export default {
     },
     //删除文件
     deleteItem (item) {
-      const index = this.files.indexOf(item)
-      confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
+      console.log(item);
+      // const index = this.files.indexOf(item)
+      // confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
     },
     //刷新文件列表
     Refresh(){
+
       //alert("111");
       // Bus.$emit('refresh_myFile', '重新加载视图部分组件');
       //后来想了一下可能没必要，直接向后台发请求要新的数据就好了
+      //新:刷新列表
+      //过程分析：
+      //1.向后台重发请求更新item
+      //2.根据当前面包屑来找到文件夹
+      //已经有的json处理方法：dataSolver(item)，用于把传回的格式转化成为列表可接受的json
+      //可以复用的代码breadcrumb(item)中步骤2（可进行封装）
     },
     clickFile(item){//点击文件触发的事件
       //根据type字段来识别是否为文件夹
@@ -751,6 +803,28 @@ export default {
         // console.log(fileType);
         //alert("可以上传");
 
+      }
+    },
+    newFolder(){//新建文件夹
+        //文件夹同名检测
+      if(this.newFolderName===''){
+        alert("文件夹名不能为空！");
+      }else{
+        //console.log(this.files.length);
+         let flag=0;
+         for(let i=0;i<this.files.length;i++) {
+           if (this.files[i].type === null) {//type字段为null,说明为文件夹
+              if (this.newFolderName === this.files[i].name){
+                 flag++;
+              }
+           }
+         }
+         //console.log(this.files[1]);
+         if(flag===1){
+           alert("存在同名文件夹");
+         }else{
+           alert("可以创建");
+         }
       }
     }
 

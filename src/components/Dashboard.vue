@@ -14,9 +14,9 @@
 <!--    <v-content v-show="showTrash">-->
 <!--      <trash/>-->
 <!--    </v-content>-->
-    <v-content>
+    <v-main>
     <router-view></router-view>
-    </v-content>
+    </v-main>
     <v-footer
         color="light-blue darken-4"
         app

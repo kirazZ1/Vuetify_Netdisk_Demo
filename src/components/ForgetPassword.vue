@@ -98,7 +98,7 @@
                       md="2"
                       offset-md="0.5"
                     >
-                      <v-btn text large color="primary">点击获取手机验证码</v-btn>
+                      <v-btn text large @click="sendCheckNum()" color="primary">重新获取手机验证码</v-btn>
                     </v-col>
                   </v-row>
 
@@ -168,7 +168,7 @@
 
                 <v-btn
                     color="primary"
-                    @click="e1 = 1"
+                    @click="thirdStep()"
                 >
                   提交
                 </v-btn>
@@ -194,6 +194,7 @@ export default {
   components:{
     Topbar
   },
+  inject:['reload'],//注入父页面（App.vue）的reload方法
   data () {
     return {
       e1: 1,        //步骤
@@ -209,6 +210,7 @@ export default {
       show2: false,
       progress:0,
       checkPasswordSecurity:false,
+      PasswordSecurityDescription:null,
       progressColor:'',
       items: [          //面包屑
         {
@@ -288,6 +290,8 @@ export default {
   },
   methods: {
     firstStep() {//第一步：输入手机号并验证--点击下一步所触发的事件
+      let me=this;
+      
       if(this.userPhone===''){
         this.message='请输入手机号！';
         this.stepAlert=true;
@@ -301,10 +305,33 @@ export default {
         this.stepAlert=true;
         this.alert=true;
       }else{
-        //向后端发送手机号，接受返回结果，如果成功进入下一步
-        this.stepAlert=false;
-        this.alert=false;
-        this.e1 = 2;
+        //向后端发送手机号，并发送验证码
+        this.axios.post('/api/cloud/forgetPassword/sendPhoneCode', {
+          userPhone:this.userPhone
+        }).then(function (response) {
+          console.log(response);
+          if(response.data.msg==="手机号错误"){
+            //alert("111");
+            me.message='手机号不存在！';
+            me.stepAlert=true;
+            me.alert=true;
+          }
+          else if(response.data.status==="重复发送"){
+            me.message='已经向该手机发送过验证码，请稍后再试！';
+            me.stepAlert=true;
+            me.alert=true;
+          }
+          else{
+            console.log(response);
+            me.stepAlert=false;
+            me.alert=false;
+            me.e1 = 2;
+          }
+
+        }).catch(function (error) {
+          console.log(error);
+        });
+
       //如果失败则提示用户输入的手机号不存在（提示用户后台处理失败）
       }
     },
@@ -312,13 +339,33 @@ export default {
       //1.验证码合法性判断（纯数字，6位）
       //2.向后台发送验证码进行检验,接受返回结果，如果成功进入下一步
       //如果失败提示用户验证码不正确（提示用户后台处理失败）
+      let me = this;
       if(this.checkNum===''){
         this.message='请输入6位纯数字验证码！';
         this.stepAlert2=true;
         this.alert=true;
       }else if(/^[0-9]*$/.test(this.checkNum)){
         //验证成功的情况，在这里发请求
-        this.e1 = 3;
+        this.axios.post('/api/cloud/forgetPassword/checkPhoneCode', {
+          userPhone:this.userPhone,
+          checkNum:this.checkNum
+        }).then(function (response) {
+          console.log(response);
+          if(response.data.status===500){
+            //alert("111");
+            me.message='输入的验证码有误！';
+            me.stepAlert=true;
+            me.alert=true;
+          }else if(response.data.status===200){
+            console.log(response);
+            me.stepAlert=false;
+            me.alert=false;
+            me.e1 = 3;
+          }
+        }).catch(function (error) {
+          console.log(error);
+        });
+        //this.e1 = 3;
       }else{
         this.message='验证码格式有误，请重新输入！';
         this.stepAlert=true;
@@ -331,6 +378,24 @@ export default {
     // }//不触发了，触发你妈了个逼
     sendCheckNum(){
       //发送验证码请求，后台计时，如果失败就返回不能再发
+      let me = this;
+      this.axios.post('/api/cloud/forgetPassword/sendPhoneCode', {
+        userPhone:this.userPhone
+      }).then(function (response) {
+        console.log(response);
+        if(response.data.data===null){
+          //alert("111");
+          me.message='60s内不能重复发送！';
+          me.stepAlert=true;
+          me.alert=true;
+        }else{
+          console.log(response);
+          alert("已发送新的验证码");
+        }
+
+      }).catch(function (error) {
+        console.log(error);
+      });
     },
     thirdStep(){//第三步：设置新密码
       //密码安全性校验（给用户看）
@@ -339,6 +404,7 @@ export default {
       //检验完发手机号和密码给后台，后台返回是否成功（可能性两种，成功或失败）
       //若成功做路由跳转到登录页面
       //把手机号和新密码发后端进行密码修改
+      let me=this;
       if(this.password1!==this.password2){
         this.stepAlert2=true;
         alert("两次输入密码不一致!");
@@ -347,8 +413,25 @@ export default {
         alert("密码长度不符合要求，请重新输入!");
       }else{
         //把手机号和新密码发后端进行密码修改
-        this.stepAlert2=false;
-        alert("成功");
+        //let me = this;
+        this.axios.post('/api/cloud/forgetPassword/updatePass', {
+          userPhone:this.userPhone,
+          userPassword:this.password1
+        }).then(function (response) {
+          console.log(response);
+          alert("修改成功！");
+          // me.$router.push({  //核心语句
+          //   path: '/',   //跳转的路径
+          // })
+          //me.loginDash();
+          // me.$router.push({  //核心语句
+          //   path: '/login',   //跳转的路径
+          // })
+          me.reload();
+        }).catch(function (error) {
+          console.log(error);
+        });
+
       }
     }
   },

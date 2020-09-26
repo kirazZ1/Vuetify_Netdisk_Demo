@@ -47,7 +47,7 @@ router.beforeEach((to, from, next) => {
   //                          清空sessionStorage后弹窗“登陆已经过期”后进行页面刷新，自然而然触发路由守卫，路由守卫此时找不到token，判定没有登陆，跳转进login
   //
   NProgress.start();
-  if (sessionStorage.getItem('token')==null) {//这里的判断条件应该换为识别是否有权限登录
+  if (sessionStorage.getItem('token')===null) {//这里的判断条件应该换为识别是否有权限登录
     console.log(111);
     //alert('111');
     if(to.path!=='/login'&&to.path!=='/forgetPassword'&&to.path!=='/FirstLogin')//需要再加个条件（to.path不是忘记密码的路由）
@@ -55,10 +55,22 @@ router.beforeEach((to, from, next) => {
     else{
       next();
     }
-  }else {
+  }else{
     //在这里进行用户权限的判断（管理员or普通用户）
-    //验证完还得加一层判断（是否初次登录）
+    let a=parseInt(sessionStorage.getItem('firstLogin'));
+    console.log(a+'qwer');
+    if(a===1){
+      if(to.path!=='/FirstLogin') {
+        next({path: '/FirstLogin'});
+      }else{
+        next();
+      }
+    }else{
+      //if()
       next();
+    }
+    //验证完还得加一层判断（是否初次登录）
+
   }
 
 })

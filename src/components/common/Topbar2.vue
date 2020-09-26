@@ -159,15 +159,65 @@ import {mdiExitRun } from "@mdi/js";
 export default {
   name: "Topbar",
   inject:['reload'],//注入父页面（App.vue）的reload方法
-  mounted(){
+  beforeMount(){
     //在这里像后端发起请求拿用户信息
     //需要做的事情：
     //1.获取用户信息(使用axios发送POST请求)
+    // "data": {     reponse.data.data
+    //   "userRootId": "11111111",
+    //       "userSex": "M",
+    //       "userPassword": null,
+    //       "userStatus": 1,
+    //       "userPermission": 3,
+    //       "userTime": "2020-09-25T08:20:49.000+0000",
+    //       "userWorkId": 2,
+    //       "userName": "aaa",
+    //       "userId": "2",
+    //       "userMobie": "453453",
+    //       "userSize": 100000.000000,
+    //       "userGarbage": "11111",
+    //       "userUsed": 0.000000,
+    //       "userEmail": "45345"
+    // }
+    let me =this;
+    let a = sessionStorage.getItem('token');
+    let b =a.substring(1,a.length-1);
 
-    //2.组件通信，把存储总量用量和用户姓名发给Sidebar
-    Bus.$emit('userName',this.user.userName);
-     Bus.$emit('userTotalZone',this.user.userTotalZone);
-      Bus.$emit('userUsedZone',this.user.userUsedZone);
+    console.log(b);
+    this.axios.post('/api/cloud/user/userInfo',{
+      token:b
+    }).then(function (response) {
+      console.log(response);
+      me.user.userName=response.data.data.userName;       //用户姓名
+      //console.log(me.user.userName);
+      if(response.data.data.userSex==="M"){              //用户性别
+        me.user.userSex="男";
+      }else{
+        me.user.userSex="女";
+      }
+      me.user.userPhone=response.data.data.userMobie;     //用户手机号
+      me.user.userEmail=response.data.data.userEmail;       //用户邮箱
+      let userCreateTimeString=response.data.data.userTime;     //拿到时间字符串
+      //以下进行时间格式转换
+      let d = new Date(userCreateTimeString);
+      // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
+      me.user.userCreateTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate())+ ' ' + (d.getHours()<10 ?"0"+d.getDate():d.getDate()) + ':' + (d.getMinutes()<10 ? "0" + d.getMinutes(): d.getMinutes()) + ':' + (d.getSeconds()<10 ? "0" + d.getSeconds() : d.getSeconds() );
+      //转换完毕
+      me.user.userTotalZone = response.data.data.userSize;
+      me.user.userUsedZone =  response.data.data.userUsed;
+      //2.组件通信，把存储总量用量和用户姓名发给Sidebar
+     // console.log(this.user.userName);
+      Bus.$emit('userName',response.data.data.userName);
+      Bus.$emit('userTotalZone',response.data.data.userSize);
+      Bus.$emit('userUsedZone', response.data.data.userUsed);
+      //设置编辑个人信息中文本域的默认值
+      me.userModify.userPhone=me.user.userPhone;
+      me.userModify.userEmail=me.user.userEmail;
+      console.log(response);
+    }).catch(function (error) {
+      console.log(error);
+    });
+
     //3.编辑的对话框内数据初始化
     this.userModify.userPhone=this.user.userPhone;
     this.userModify.userEmail=this.user.userEmail;
@@ -180,10 +230,26 @@ export default {
     //退出登录按钮
     exit(){
       var me=this;
+
+      let a = sessionStorage.getItem('token');
+      let b =a.substring(1,a.length-1);
       //这里还需要向后台发送请求，让后台把redis中把token移除
-      window.sessionStorage.removeItem('token');
-      //重新加载页面（实际上是对全局进行路由跳转）
-      me.reload();
+      this.axios.post('/api/cloud/user/logout', {
+        token:b
+      }).then(function (response) {
+        console.log(response.data);
+        if(response.data.msg=='退出成功'){
+          window.sessionStorage.removeItem('token');
+          //重新加载页面（实际上是对全局进行路由跳转）
+          me.reload();
+        }else{
+          console.log(response);
+        }
+
+      }).catch(function (error) {
+        console.log(error);
+      });
+
     },
     closeDialog2(){
       // alert("111");
@@ -203,6 +269,7 @@ export default {
       //编辑个人信息对话框开闭状态
       dialog2:false,
       //用户信息
+
       user:{
         //用户姓名
         userName:'张三',

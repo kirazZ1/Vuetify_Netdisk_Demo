@@ -5,7 +5,7 @@
       color="blue darken-3 "
       v-model="drawer"
       :right="$vuetify.rtl"
-      mobile-break-point="960"
+      mobile-breakpoint="960"
       app
       width="240"
   >
@@ -96,20 +96,23 @@ export default {
   name: "Sidebar",
   beforeCreate() {
     //接受Topbar2传来的用户姓名
-    Bus.$on('userName',(e)=>{
-      this.userName=e;
-    });
-    //接受Topbar2传来的用户存储总量
-    Bus.$on('userTotalZone',(e)=>{
-      this.storage.total=e;
-    });
-    //接收Topbar2传来的用户存储用量
-    Bus.$on('userUsedZone',(e)=>{
-      this.storage.used=e;
-    });
+
 
   },
+  beforeMount() {
+    Bus.$on('userName', (e) => { //点击按钮侧导航栏开关
+      this.userName=e;
+    });
+    Bus.$on('userTotalZone', (e) => { //点击按钮侧导航栏开关
+      console.log(e);
+      this.storage.total=e;
+    });
+    Bus.$on('userUsedZone', (e) => { //点击按钮侧导航栏开关
+      this.storage.used=e;
+    });
+  },
   mounted() {
+
     Bus.$on('msg1', (e) => { //点击按钮侧导航栏开关
       if(this.drawer==true){
         this.drawer=false;
@@ -118,10 +121,18 @@ export default {
       }
       console.log(e)
     });
-    const pg=(this.storage.used/this.storage.total)*100;
-    this.progress=pg.toFixed(2);
-    //alert(this.progress);
 
+  },
+
+  beforeUpdate() {
+    const pg=(this.storage.used/this.storage.total)*100;
+    console.log(this.userName);
+    console.log(this.storage.used);
+    console.log(this.storage.total);
+    console.log(pg);
+    this.progress=pg.toFixed(2);
+    console.log(this.progress);
+    //alert(this.progress);
   },
   data(){
     return{
@@ -143,6 +154,7 @@ export default {
     }
 
   },
+
   created(){
     this.getTime();
   },

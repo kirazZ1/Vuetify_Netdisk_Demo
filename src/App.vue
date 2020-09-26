@@ -1,9 +1,9 @@
-<style>
-/*进度条颜色*/
-#nprogress .bar {
-  background: #1E90FF !important;
-}
-</style>
+<!--<style>-->
+<!--/*进度条颜色*/-->
+<!--/*#nprogress .bar {*/-->
+<!--/*  background: #1E90FF !important;*/-->
+<!--/*}*/-->
+<!--</style>-->
 <template>
   <div id="app">
     <transition :name="animate">
@@ -40,6 +40,7 @@ export default {
   }),
   methods:{
     loginDash(){
+      //console.log("tiaozhuan1");
       this.$router.push({  //核心语句
         path: '/dashboard',   //跳转的路径
       })
