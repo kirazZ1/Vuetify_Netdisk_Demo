@@ -1,6 +1,6 @@
 <template>
   <div>
-
+    <div class="ma-1 pa-1"></div>
     <v-container >
       <v-card>
       <v-row>
@@ -20,7 +20,7 @@
                    <v-btn v-show="uploadButton"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
               </div>
               <div class="ma-1 pa-1">
-                    <v-btn  color="primary" ><v-icon>{{button2.icon}}</v-icon>下载</v-btn>
+                    <v-btn  color="primary" @click="download()"><v-icon >{{button2.icon}}</v-icon>下载</v-btn>
               </div>
               <div class="ma-1 pa-1">
                 <v-btn  color="primary"  @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
@@ -32,7 +32,7 @@
 
             </v-row>
           </v-col>
-
+<!--上传文件对话框-->
         <v-dialog
             v-model="uploadDialog"
             persistent max-width="600px"
@@ -83,6 +83,7 @@
 <!--        >-->
 <!--          {{uploadMessage}}-->
 <!--        </v-alert>-->
+<!--        新建文件夹对话框-->
         <v-dialog
             v-model="newFolderDialog"
             persistent max-width="600px"
@@ -111,6 +112,7 @@
           </v-card-actions>
         </v-card>
         </v-dialog>
+<!--        显示文件信息对话框-->
         <v-dialog
             v-model="infoDialog"
             max-width="600px"
@@ -153,6 +155,155 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+<!--        重命名文件/文件夹对话框-->
+        <v-dialog
+            v-model="renameDialog"
+            persistent max-width="600px"
+        >
+          <v-alert
+              v-model="renameAlert"
+              dismissible
+              type="error"
+              border="left"
+              elevation="2"
+              colored-border
+              transition="scale-transition"
+          >
+            {{renameMessage}}
+          </v-alert>
+          <v-card>
+            <v-card-title>
+              <span class="headline">重命名</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-text-field
+                    v-model="renameFileName"
+                    :counter="10"
+                    label="新文件名"
+                    required
+                ></v-text-field>
+
+
+              </v-container>
+
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="renameDialog = false">关闭</v-btn>
+              <v-btn color="blue darken-1" text @click="rename()">提交</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <!--移动文件/文件夹对话框-->
+        <v-dialog
+            v-model="moveDialog"
+            persistent max-width="600px"
+        >
+          <v-alert
+              v-model="moveAlert"
+              dismissible
+              type="error"
+              border="left"
+              elevation="2"
+              colored-border
+              transition="scale-transition"
+          >
+            {{moveMessage}}
+          </v-alert>
+          <v-card>
+            <v-card-title>
+              <span class="headline">移动到</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+
+
+<!--                <v-treeview :items="viewFolder">-->
+                <v-card elevation="10">
+                  <v-card-title>
+                    <small>请选择目标文件夹：</small>
+                  </v-card-title>
+                  <v-treeview
+                      activatable
+                      :items="viewFolder"
+                      :open="open"
+                      item-disabled="locked"
+
+                  >
+
+                    <template v-slot:prepend="{ item, open }">
+                      <v-icon>
+                        {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
+                      </v-icon>
+                    </template>
+                    <template v-slot:append="{ item }">
+                      <v-btn text color="primary" @click="moveFile(item)" v-show="!item.locked">选择</v-btn>
+                    </template>
+                  </v-treeview>
+                </v-card>
+
+<!--                </v-treeview>-->
+              </v-container>
+
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="moveDialog = false">关闭</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!--复制文件/文件夹对话框-->
+        <v-dialog
+            v-model="copyDialog"
+            persistent max-width="600px"
+        >
+
+          <v-card>
+            <v-card-title>
+              <span class="headline">复制到</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+
+
+                <!--                <v-treeview :items="viewFolder">-->
+                <v-card elevation="10">
+                  <v-card-title>
+                    <small>请选择目标文件夹：</small>
+                  </v-card-title>
+                  <v-treeview
+                      activatable
+                      :items="viewFolder"
+                      :open="open"
+
+
+                  >
+
+                    <template v-slot:prepend="{ item, open }">
+                      <v-icon>
+                        {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
+                      </v-icon>
+                    </template>
+                    <template v-slot:append="{ item }">
+                      <v-btn text color="primary" @click="moveFile(item)" >选择</v-btn>
+                    </template>
+                  </v-treeview>
+                </v-card>
+
+                <!--                </v-treeview>-->
+              </v-container>
+
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="copyDialog = false">关闭</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+
         <v-col
             md="2"
             offset-md="3"
@@ -268,6 +419,7 @@
                         medium
                         v-bind="attrs"
                         v-on="{ ...tooltip, ...menu }"
+                        @click="moreOptionIcon(item)"
                     >
                       mdi-dots-horizontal
                     </v-icon>
@@ -280,7 +432,7 @@
               <v-list-item
                   v-for="(item, index) in items"
                   :key="index"
-
+                  @click="moreOption(item)"
               >
                 <v-list-item-title>{{ item.title }}</v-list-item-title>
               </v-list-item>
@@ -300,7 +452,8 @@ import {
   mdiCloudDownload,
 
   mdiRefresh
-} from '@mdi/js'    //导入图标
+} from '@mdi/js'
+
 
 export default {
   name: "myFile",
@@ -314,8 +467,13 @@ export default {
       newFolderButton:true,//是否显示新建文件夹按钮
       uploadButton:true,//是否显示上传文件按钮
       uploadDialog:false,
+      renameDialog:false,
+      moveDialog:false,
+      copyDialog:false,
       //upload:null,
       uploadFileName:'',
+      renameFileName:'',
+      viewFolder:[],
       //2020-09-11
       //面包屑导航
       //效果：进入文件夹之后，面包屑栏增加一个返回上级的面包屑便于返回上一级目录
@@ -339,7 +497,7 @@ export default {
         }
 
       ],
-      singleSelect: false,    //表格单选
+      singleSelect: true,    //表格单选
       selected: [],   //表格左边勾选选项（默认为空）
       headers: [    //表格标题
         {
@@ -373,11 +531,14 @@ export default {
         md: 'mdi-markdown',
         pdf: 'mdi-file-pdf',
         png: 'mdi-file-image',
+        jpg: 'mdi-file-image',
         txt: 'mdi-file-document-outline',
         xls: 'mdi-file-excel',
+        docx:'mdi-file-word'
+
       },
       item:{//后台返回给前台的文件数据
-          directID:'',        //文件夹ID
+          directID:'10000',        //文件夹ID
           name:'四大名著',		//文件夹名称
           size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
           modificationDate:'2020-01-01',	//上传时间
@@ -413,7 +574,7 @@ export default {
               includeDirects:[
                 {
                   directID:'20003',        //文件夹ID
-                  name:'阅读笔记2',		//文件夹名称
+                  name:'阅读笔记',		//文件夹名称
                   size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
                   modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
                   includeDirects:[],
@@ -489,7 +650,12 @@ export default {
       //uploadFile:null,
       formData:null,
       uploadMessage:'',
+      renameMessage:'',
+      moveMessage:'',
       uploadAlert:false,
+      renameAlert:false,
+      moveAlert:false,
+      copyAlert:false,
       fileInfo:
       {
             id:'',
@@ -497,17 +663,45 @@ export default {
             name:'',		 			//文件名
             size:'',						//文件大小
             modificationDate:''	//更新时间
-      }
-      ,
+      },
       infoDialog:false,
       newFolderDialog:false,
-      newFolderName:''
+      newFolderName:'',
+      optionItem:null,
+      folderTree:null,
+      open: ['public'],
+      findFolder:[]
     }
   },
-
+  beforeCreate() {
+    // let me=this;
+    // let a = sessionStorage.getItem('token');
+    // let b =  a.substring(1,a.length-1);
+    // this.axios.post('/cloud/user/userCatalogue',{
+    //   token:b
+    // }).then(function (response) {
+    //   console.log(response.data.data);
+    //   if(response.data.data!=null){
+    //     me.item= response.data.data;
+    //     console.log( 'fuck');
+    //     console.log( me.item);
+    //     //me.files = me.dataSolver(this.item);
+    //   }
+    //   // console.log(response.data.data);
+    // }).catch(function (error) {
+    //   console.log(error);
+    // });
+    // this.files = this.dataSolver(this.item);
+  },
   beforeMount() {
     //this.files=this.receiveFiles;
+    //let me =this;
+
+    console.log(11111);
+    console.log(this.item);
     this.files = this.dataSolver(this.item);
+
+    //console.log();
   },
 
   methods:{
@@ -552,9 +746,11 @@ export default {
       this.backButton=true;
       this.newFolderButton=false;
       this.uploadButton=false;
+      this.selected=[];
     },
     //删除文件
     deleteItem (item) {
+      alert("删除"+item.name);
       console.log(item);
       // const index = this.files.indexOf(item)
       // confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
@@ -588,7 +784,7 @@ export default {
         this.breadcrumb_items.push(breadcrumb);
         this.breadcrumbNum=this.breadcrumbNum+1;
 
-
+        this.selected=[];
         this.files = this.dataSolver(item.include);
         //console.log(item);
       }else{//其他文件
@@ -613,6 +809,7 @@ export default {
                                             // this.files=this.receiveFiles;
 
         this.files = this.dataSolver(this.item);
+        this.selected=[];
       }else{     //如果是其他层级的子文件夹，执行以下操作
         console.log(this.breadcrumb_items.length);
         for(let i=0;i<this.breadcrumb_items.length;i++){
@@ -627,7 +824,9 @@ export default {
             }
           }
           this.files=fileList;
+
         }
+        this.selected=[];
       }
 
     },
@@ -731,6 +930,91 @@ export default {
       }
 
     },
+    folderTreeBuild(item){     //用于文件夹树形结构字符串构造（结果用于输入vuetify组件），移动/复制时候显示形式为树状结构
+        //源字符串来自this.item，即系统接收到的文件列表数据
+      //收到的数据格式
+      // {
+      //   directID:''         //文件夹ID
+      //   name:'四大名著',		//文件夹名称
+      //   size:,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      //   modificationDate:'2020-01-01'	//上传时间
+      //   includeDirects:[]
+      //   includeFiles:[]      //包含文件，此处可忽略
+      // }
+      //需求的数据格式
+      // {
+      //       id: 1,
+      //       name: 'Applications :',
+      //       children: [
+      //        { id: 2, name: 'Calendar : app' },
+      //        { id: 3, name: 'Chrome : app' },
+      //        { id: 4, name: 'Webstorm : app' },
+      //       ],
+      // },
+      //最底层，最小的递归元素：
+      //new obj ={
+      //    id:null,    //文件夹id
+      //    name:null,  //文件夹名称
+      //    children:null   //文件夹下文件夹（底层文件夹为null）includeDirects:[](includeDirects.length===0)
+      // }
+      // obj.id=item[i].directID;
+      // obj.name=item[i].name;
+      let resultArray = [];
+      for(let i=0;i<item.length;i++){
+        if(item[i].type===undefined){//文件夹
+          let obj ={
+            id:null,    //文件夹id
+            name:null,  //文件夹名称
+            locked:null,
+            children:null   //文件夹下文件夹（底层文件夹为null）includeDirects:[](includeDirects.length===0)
+          };
+          obj.id=item[i].directID;
+          obj.name=item[i].name;
+
+          if(item[i].directID===this.optionItem.id){
+            obj.locked=true;
+          }else{
+            obj.locked=false;
+          }
+          if(item[i].includeDirects.length!==0){
+            obj.children= this.folderTreeBuild(item[i].includeDirects);
+          }else{
+            obj.children=undefined;
+          }
+          resultArray.push(obj);
+        }
+
+      }
+      return resultArray;
+    },
+    folderTreeLock(item){
+      // {
+      //       id: 1,
+      //       name: 'Applications :',
+      //       locked:false,
+      //       children: [
+      //        { id: 2, name: 'Calendar : app' },
+      //        { id: 3, name: 'Chrome : app' },
+      //        { id: 4, name: 'Webstorm : app' },
+      //       ],
+      // },
+      //console.log(33333);
+      //console.log(item[0].children.length);
+      //console.log(11111);
+       for(let i=0;i<item.length;i++){
+          if(item[i].children!==undefined){
+              if(item[i].locked===true){
+                    for(let j=0;j<item[i].children.length;j++){
+                      item[i].children[j].locked=true;
+                    }
+              }
+         //
+              this.folderTreeLock(item[i].children);
+
+          }
+
+       }
+    },
     Back(){
       //初始化数据
       this.files=this.dataSolver(this.item);
@@ -751,6 +1035,8 @@ export default {
       this.newFolderButton=true;
       this.backButton=false;
       this.preSearch='';
+      this.selected=[];
+
     },
     shareItem(item){
       console.log(item);
@@ -773,7 +1059,7 @@ export default {
         //console.log(document.querySelector("#upload"));
         let fileName = document.querySelector("#upload").files[0].name;
         let type=fileName.replace(/.+\./,"");       //匹配后缀名
-        console.log(type);
+        //console.log(type);
         let flag=0;
         for(let i=0;i<this.files.length;i++){
           if(this.uploadFileName===this.files[i].name&&type===this.files[i].type){
@@ -805,6 +1091,20 @@ export default {
 
       }
     },
+    moreOptionIcon(item){
+      //console.log(item);
+      this.optionItem=item;
+      let test =[];
+      test.push(this.item);
+      let a =this.folderTreeBuild(test);
+      //console.log(11111);
+      //console.log(a);
+      this.viewFolder=a;
+
+
+      //console.log(this.viewFolder);
+
+    },
     newFolder(){//新建文件夹
         //文件夹同名检测
       if(this.newFolderName===''){
@@ -826,8 +1126,117 @@ export default {
            alert("可以创建");
          }
       }
-    }
+    },
+    moreOption(item){
+      // console.log(item);
+      // this.optionItem=item;
+      if(item.title==='移动到'){
+        //alert('移动到');
+        this.folderTreeLock(this.viewFolder);
+        this.moveDialog=true;
+      }else if(item.title==='复制到'){
 
+        this.copyDialog=true;
+      }else{
+        //alert('重命名');
+        //this.optionItem=item;
+        this.renameDialog = true
+      }
+    },
+    download(){
+      //console.log(this.selected);
+      if(this.selected.length===0){
+        alert("请勾选待下载的文件");
+      }else{
+        let downloadFile = this.selected[0];
+        if(downloadFile.type===null){
+          alert("暂不支持下载文件夹！");
+
+        }else{
+          alert("下载文件"+downloadFile.name);
+        }
+      }
+
+    },
+    moveFile(item){//移动文件/文件夹
+      //需要判断当前文件夹是否有同名文件
+      //item.id--->目标文件夹id
+      //this.optionItem.name--->要移动的文件/文件夹名称
+      //this.optionItem.type--->要移动的文件类型
+      //过程：1.通过目标文件夹id在文件树中找到对应文件夹的json，格式如下：
+      // {
+      //   directID:''         //文件夹ID
+      //   name:'四大名著',		//文件夹名称
+      //   size:,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      //   modificationDate:'2020-01-01'	//上传时间
+      //   includeDirects:[]
+      //   includeFiles:[]      //包含文件，此处可忽略
+      // }
+      //    2.在includeDirects/includeFiles里面找是否有同名同类型文件/文件夹
+      //      判断文件依据：type是否为undefined
+      //        移动的是文件:在includeFiles里找，同名同类型就是相同文件
+      //        移动的是文件夹:在includeDirects里找，同名就是相同文件夹
+      //过程1实现如下:
+      let a = [];
+      this.findFolder=[];
+      a.push(this.item);
+      this.findFolderMethod(item.id,a);
+      //console.log(this.findFolder);
+     // console.log(item);
+      //过程2实现如下:
+      // let b= this.findFolder[0].includeDirects;
+      // console.log(b);
+      //console.log(this.findFolder.includeFiles.length);
+      let flag = 0;
+      //console.log(this.optionItem.type);
+      if(this.optionItem.type===null){
+          //文件夹判断同名
+        for(let i=0;i<this.findFolder[0].includeDirects.length;i++){
+          if(this.optionItem.name===this.findFolder[0].includeDirects[i].name){
+            //console.log(this.findFolder[0].includeDirects[i].name);
+                flag++;
+          }
+        }
+      }else{
+          //文件判断同名
+        for(let i=0;i<this.findFolder[0].includeFiles.length;i++){
+          if(this.optionItem.name===this.findFolder[0].includeFiles[i].name&&this.optionItem.type===this.findFolder[0].includeFiles[i].type){
+            flag++;
+          }
+        }
+      }
+      //alert(flag);
+      if(flag === 1){
+          alert("存在同名文件/文件夹！");
+      }else{
+          alert("移动成功!");
+      }
+
+    },
+    findFolderMethod(id,item){
+      //通过目标文件夹id在文件树中找到对应文件夹的json
+      //传入参数：文件夹id
+      //遍历整棵树，找到的话压入数组，并返回
+      for(let i=0;i<item.length;i++){
+        if(item[i].type===undefined){
+          if(item[i].directID===id){
+            let a = this.findFolder.push(item[i]);
+            console.log(a);
+          }
+          this.findFolderMethod(id,item[i].includeDirects);
+        }
+      }
+
+
+    },
+    rename(){
+      if(this.renameFileName===''){
+        this.renameAlert=true;
+        this.renameMessage="文件名不能为空";
+      }else{
+        alert("重命名"+this.optionItem.name+"为"+this.renameFileName);
+      }
+    }
   }
 }
 </script>

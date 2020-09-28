@@ -181,10 +181,10 @@ export default {
     // }
     let me =this;
     let a = sessionStorage.getItem('token');
-    let b =a.substring(1,a.length-1);
+    let b =  a.substring(1,a.length-1);
 
     console.log(b);
-    this.axios.post('/api/cloud/user/userInfo',{
+    this.axios.post('/cloud/user/userInfo',{
       token:b
     }).then(function (response) {
       console.log(response);
@@ -234,11 +234,11 @@ export default {
       let a = sessionStorage.getItem('token');
       let b =a.substring(1,a.length-1);
       //这里还需要向后台发送请求，让后台把redis中把token移除
-      this.axios.post('/api/cloud/user/logout', {
+      this.axios.post('/cloud/user/logout', {
         token:b
       }).then(function (response) {
         console.log(response.data);
-        if(response.data.msg=='退出成功'){
+        if(response.data.msg==='退出成功'){
           window.sessionStorage.removeItem('token');
           //重新加载页面（实际上是对全局进行路由跳转）
           me.reload();

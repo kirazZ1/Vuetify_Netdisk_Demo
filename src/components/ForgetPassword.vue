@@ -306,7 +306,7 @@ export default {
         this.alert=true;
       }else{
         //向后端发送手机号，并发送验证码
-        this.axios.post('/api/cloud/forgetPassword/sendPhoneCode', {
+        this.axios.post('/cloud/forgetPassword/sendPhoneCode', {
           userPhone:this.userPhone
         }).then(function (response) {
           console.log(response);
@@ -346,7 +346,7 @@ export default {
         this.alert=true;
       }else if(/^[0-9]*$/.test(this.checkNum)){
         //验证成功的情况，在这里发请求
-        this.axios.post('/api/cloud/forgetPassword/checkPhoneCode', {
+        this.axios.post('/cloud/forgetPassword/checkPhoneCode', {
           userPhone:this.userPhone,
           checkNum:this.checkNum
         }).then(function (response) {
@@ -379,7 +379,7 @@ export default {
     sendCheckNum(){
       //发送验证码请求，后台计时，如果失败就返回不能再发
       let me = this;
-      this.axios.post('/api/cloud/forgetPassword/sendPhoneCode', {
+      this.axios.post('/cloud/forgetPassword/sendPhoneCode', {
         userPhone:this.userPhone
       }).then(function (response) {
         console.log(response);
@@ -414,7 +414,7 @@ export default {
       }else{
         //把手机号和新密码发后端进行密码修改
         //let me = this;
-        this.axios.post('/api/cloud/forgetPassword/updatePass', {
+        this.axios.post('/forgetPassword/updatePass', {
           userPhone:this.userPhone,
           userPassword:this.password1
         }).then(function (response) {

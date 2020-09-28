@@ -131,7 +131,7 @@ export default {
       }
       else {
 
-        this.axios.post('/api/cloud/login', {
+        this.axios.post('/cloud/login', {
           userName: id,
           userPassword: password
         }).then(function (response) {
