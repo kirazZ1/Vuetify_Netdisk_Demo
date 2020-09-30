@@ -90,15 +90,14 @@ import {
   mdiShareVariant,
   mdiFolder,
   mdiTrashCanOutline,
-  mdiAccountMultiple
+  mdiAccountMultiple,
+  mdiAccountBox,
+  mdiBadgeAccount,
+  mdiFileDocumentMultiple
 } from '@mdi/js'    //导入图标
 export default {
   name: "Sidebar",
-  beforeCreate() {
-    //接受Topbar2传来的用户姓名
 
-
-  },
   beforeMount() {
     Bus.$on('userName', (e) => { //点击按钮侧导航栏开关
       this.userName=e;
@@ -110,11 +109,36 @@ export default {
     Bus.$on('userUsedZone', (e) => { //点击按钮侧导航栏开关
       this.storage.used=e;
     });
+    //userStatus
+    Bus.$on('userPermission', (e) => { //点击按钮侧导航栏开关
+      this.permission=e;
+      if(this.permission===3){
+        let obj1 = {
+          title: '用户管理', icon: mdiAccountBox, route:'userManage'
+        };
+        let obj2 = {
+          title: '文档管理员管理', icon: mdiBadgeAccount , route:'fileManagerManage'
+        };
+        let obj3  = {
+          title: '部门文档管理', icon: mdiFileDocumentMultiple , route:'manageGroupFile'
+        };
+        this.items.push(obj1);
+        this.items.push(obj2);
+        this.items.push(obj3);
+      }else if(this.permission==2){
+        let obj4  = {
+          title: '部门文档管理', icon: mdiFileDocumentMultiple , route:'manageGroupFile'
+        };
+        this.items.push(obj4);
+      }
+      console.log("用户权限:"+this.permission);
+    });
+
   },
   mounted() {
 
     Bus.$on('msg1', (e) => { //点击按钮侧导航栏开关
-      if(this.drawer==true){
+      if(this.drawer===true){
         this.drawer=false;
       }else{
         this.drawer=true;
@@ -141,7 +165,8 @@ export default {
         { title: '我的文件', icon: mdiFolder, route:'myFiles'},
         { title: '我的部门', icon: mdiAccountMultiple, route:'myGroups'  },
         { title: '查看分享',icon:mdiShareVariant, route:'viewShare'},
-        { title: '回收站',icon:mdiTrashCanOutline, route:'trash'}
+        { title: '回收站',icon:mdiTrashCanOutline, route:'trash'},
+
       ],
       nowTime:new Date(),                         //当前系统时间
       miniVariant: false,                         //主体是否深色
@@ -150,7 +175,8 @@ export default {
         total:0,
         used:0
       },
-      progress:null
+      progress:null,
+      permission:0
     }
 
   },

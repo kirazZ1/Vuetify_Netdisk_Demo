@@ -4,6 +4,9 @@ import myFiles from "@/components/view/myFiles";
 import myGroups from "@/components/view/myGroups";
 import viewShare from "@/components/view/viewShare";
 import trash from "@/components/view/trash";
+import userManage from "@/components/view/userManage";
+import fileManagerManage from "@/components/view/fileManagerManage";
+import manageGroupFile from "@/components/view/manageGroupFile";
 Vue.use(Router);
 export default new Router({
     routes:[
@@ -50,6 +53,18 @@ export default new Router({
                     path: 'trash',
                     component: trash
                 },
+                {
+                    path: 'userManage',
+                    component: userManage
+                },
+                {
+                    path: 'fileManagerManage',
+                    component: fileManagerManage
+                },
+                {
+                    path: 'manageGroupFile',
+                    component: manageGroupFile
+                },
                 ]
         },
         //登录的route
@@ -79,6 +94,12 @@ export default new Router({
                 title: '首次登陆' ,
 
             }
+        },
+        {
+            name: 'Share',
+            path: '/Share',
+            component: ()=>import('../components/Share.vue'),
+
         }
     ]
 

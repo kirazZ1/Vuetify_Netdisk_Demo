@@ -49,9 +49,18 @@
             {{uploadMessage}}
           </v-alert>
           <v-card>
-            <v-card-title>
-              <span class="headline">上传文件</span>
-            </v-card-title>
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>上传文件</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
             <v-card-text>
               <v-container>
                 <v-text-field
@@ -89,9 +98,19 @@
             persistent max-width="600px"
         >
         <v-card>
-          <v-card-title>
-            <span class="headline">新建文件夹</span>
-          </v-card-title>
+
+          <v-toolbar
+              color="light-blue darken-4"
+              dark
+              flat
+          >
+            <v-toolbar-title>新建文件夹</v-toolbar-title>
+
+            <v-spacer></v-spacer>
+            <v-tooltip bottom>
+
+            </v-tooltip>
+          </v-toolbar>
           <v-card-text>
             <v-container>
               <v-text-field
@@ -118,9 +137,18 @@
             max-width="600px"
         >
           <v-card>
-            <v-card-title>
-              <span class="headline">文件详情</span>
-            </v-card-title>
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>文件详情</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
             <v-card-text>
               <v-container>
               <v-list three-line subheader>
@@ -172,9 +200,19 @@
             {{renameMessage}}
           </v-alert>
           <v-card>
-            <v-card-title>
-              <span class="headline">重命名</span>
-            </v-card-title>
+
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>重命名</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
             <v-card-text>
               <v-container>
                 <v-text-field
@@ -212,12 +250,24 @@
             {{moveMessage}}
           </v-alert>
           <v-card>
-            <v-card-title>
-              <span class="headline">移动到</span>
-            </v-card-title>
+<!--            <v-card-title>-->
+<!--              <span class="headline">移动到</span>-->
+<!--            </v-card-title>-->
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>移动到</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
             <v-card-text>
               <v-container>
-
+                <div class="ma-1 pa-1"></div>
 
 <!--                <v-treeview :items="viewFolder">-->
                 <v-card elevation="10">
@@ -261,13 +311,24 @@
         >
 
           <v-card>
-            <v-card-title>
-              <span class="headline">复制到</span>
-            </v-card-title>
+
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>复制到</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
+
             <v-card-text>
               <v-container>
 
-
+                <div class="ma-1 pa-1"></div>
                 <!--                <v-treeview :items="viewFolder">-->
                 <v-card elevation="10">
                   <v-card-title>
@@ -357,12 +418,15 @@
       <v-divider></v-divider>
 
     <!--显示文件用表格代码-->
-      <v-data-table
+      <v-card elevation="5">
+        <v-data-table
+            :loading="loading"
           v-model="selected"
           :headers="headers"
           :items="files"
           :single-select="singleSelect"
-          item-key="name"
+            no-data-text="暂时没有文件"
+          item-key="id"
           show-select
           class="elevation-1"
       >
@@ -442,6 +506,7 @@
         </template>
 
       </v-data-table>
+      </v-card>
     </v-container>
   </div>
 </template>
@@ -537,116 +602,130 @@ export default {
         docx:'mdi-file-word'
 
       },
-      item:{//后台返回给前台的文件数据
-          directID:'10000',        //文件夹ID
-          name:'四大名著',		//文件夹名称
-          size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-          modificationDate:'2020-01-01',	//上传时间
-          includeDirects:[
-            {
-              directID:'20001',        //文件夹ID
-              name:'阅读笔记',		//文件夹名称
-              size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-              modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-              includeDirects:[],
-              includeFiles:[	//嵌套文件
-                {
-                  fileID:'10008',						//文件ID 用于后续操作
-                  type:'pdf',						//文件类型
-                  name:'观水浒传有感',		 			//文件名
-                  size:'10M',						//文件大小
-                  modificationDate:'2020-01-01'	//更新时间
-                },
-                {
-                  fileID:'10007',						//文件ID 用于后续操作
-                  type:'pdf',						//文件类型
-                  name:'观红楼梦有感',		 			//文件名
-                  size:'10M',						//文件大小
-                  modificationDate:'2020-01-01'	//更新时间
-                }
-              ]
-            },
-            {
-              directID:'20002',        //文件夹ID
-              name:'阅读笔记2',		//文件夹名称
-              size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-              modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-              includeDirects:[
-                {
-                  directID:'20003',        //文件夹ID
-                  name:'阅读笔记',		//文件夹名称
-                  size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-                  modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-                  includeDirects:[],
-                  includeFiles:[	//嵌套文件
-                    {
-                      fileID:'10009',						//文件ID 用于后续操作
-                      type:'pdf',						//文件类型
-                      name:'观水浒传有感',		 			//文件名
-                      size:'10M',						//文件大小
-                      modificationDate:'2020-01-01'	//更新时间
-                    },
-                    {
-                      fileID:'10010',						//文件ID 用于后续操作
-                      type:'pdf',						//文件类型
-                      name:'观红楼梦有感',		 			//文件名
-                      size:'10M',						//文件大小
-                      modificationDate:'2020-01-01'	//更新时间
-                    }
-                  ]
-                }
-              ],
-              includeFiles:[	//嵌套文件
-                {
-                  fileID:'10005',						//文件ID 用于后续操作
-                  type:'pdf',						//文件类型
-                  name:'观水浒传有感',		 			//文件名
-                  size:'10M',						//文件大小
-                  modificationDate:'2020-01-01'	//更新时间
-                },
-                {
-                  fileID:'10006',						//文件ID 用于后续操作
-                  type:'pdf',						//文件类型
-                  name:'观红楼梦有感',		 			//文件名
-                  size:'10M',						//文件大小
-                  modificationDate:'2020-01-01'	//更新时间
-                }
-              ]
-            }
-          ],
-          includeFiles:[				//文件夹内的内容，文件夹内可以嵌套文件夹
-            {
-              fileID:"10001",						//文件ID 用于后续操作
-              type:'pdf',						//文件类型
-              name:'西游记',		 			//文件名
-              size:'10M',						//文件大小
-              modificationDate:'2020-01-01'	//更新时间
-            },
-            {
-              fileID:"10002",						//文件ID 用于后续操作
-              type:'pdf',						//文件类型
-              name:'红楼梦',		 			//文件名
-              size:'10M',						//文件大小
-              modificationDate:'2020-01-01'	//更新时间
-            },
-            {
-              fileID:"10003",						//文件ID 用于后续操作
-              type:'pdf',						//文件类型
-              name:'三国演义',		 			//文件名
-              size:'10M',						//文件大小
-              modificationDate:'2020-01-01'	//更新时间
-            },
-            {
-              fileID:"10004",						//文件ID 用于后续操作
-              type:'pdf',						//文件类型
-              name:'水浒传',		 			//文件名
-              size:'10M',						//文件大小
-              modificationDate:'2020-01-01'	//更新时间
-            },
-
-          ],
-
-        },
+      //  directID:'10000',        //文件夹ID
+      // name:'四大名著',		//文件夹名称
+      // size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      // modificationDate:'2020-01-01',	//上传时间
+      // includeDirects:[]
+      //  includeFiles:[]
+      item:{
+        directID:'',        //文件夹ID
+        name:'',		//文件夹名称
+        size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+        modificationDate:'',	//上传时间
+        includeDirects:[],
+        includeFiles:[]
+      },
+      // item:{//后台返回给前台的文件数据
+      //     directID:'10000',        //文件夹ID
+      //     name:'四大名著',		//文件夹名称
+      //     size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      //     modificationDate:'2020-01-01',	//上传时间
+      //     includeDirects:[
+      //       {
+      //         directID:'20001',        //文件夹ID
+      //         name:'阅读笔记',		//文件夹名称
+      //         size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      //         modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
+      //         includeDirects:[],
+      //         includeFiles:[	//嵌套文件
+      //           {
+      //             fileID:'10008',						//文件ID 用于后续操作
+      //             type:'pdf',						//文件类型
+      //             name:'观水浒传有感',		 			//文件名
+      //             size:'10M',						//文件大小
+      //             modificationDate:'2020-01-01'	//更新时间
+      //           },
+      //           {
+      //             fileID:'10007',						//文件ID 用于后续操作
+      //             type:'pdf',						//文件类型
+      //             name:'观红楼梦有感',		 			//文件名
+      //             size:'10M',						//文件大小
+      //             modificationDate:'2020-01-01'	//更新时间
+      //           }
+      //         ]
+      //       },
+      //       {
+      //         directID:'20002',        //文件夹ID
+      //         name:'阅读笔记2',		//文件夹名称
+      //         size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      //         modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
+      //         includeDirects:[
+      //           {
+      //             directID:'20003',        //文件夹ID
+      //             name:'阅读笔记',		//文件夹名称
+      //             size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
+      //             modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
+      //             includeDirects:[],
+      //             includeFiles:[	//嵌套文件
+      //               {
+      //                 fileID:'10009',						//文件ID 用于后续操作
+      //                 type:'pdf',						//文件类型
+      //                 name:'观水浒传有感',		 			//文件名
+      //                 size:'10M',						//文件大小
+      //                 modificationDate:'2020-01-01'	//更新时间
+      //               },
+      //               {
+      //                 fileID:'10010',						//文件ID 用于后续操作
+      //                 type:'pdf',						//文件类型
+      //                 name:'观红楼梦有感',		 			//文件名
+      //                 size:'10M',						//文件大小
+      //                 modificationDate:'2020-01-01'	//更新时间
+      //               }
+      //             ]
+      //           }
+      //         ],
+      //         includeFiles:[	//嵌套文件
+      //           {
+      //             fileID:'10005',						//文件ID 用于后续操作
+      //             type:'pdf',						//文件类型
+      //             name:'观水浒传有感',		 			//文件名
+      //             size:'10M',						//文件大小
+      //             modificationDate:'2020-01-01'	//更新时间
+      //           },
+      //           {
+      //             fileID:'10006',						//文件ID 用于后续操作
+      //             type:'pdf',						//文件类型
+      //             name:'观红楼梦有感',		 			//文件名
+      //             size:'10M',						//文件大小
+      //             modificationDate:'2020-01-01'	//更新时间
+      //           }
+      //         ]
+      //       }
+      //     ],
+      //     includeFiles:[				//文件夹内的内容，文件夹内可以嵌套文件夹
+      //       {
+      //         fileID:"10001",						//文件ID 用于后续操作
+      //         type:'pdf',						//文件类型
+      //         name:'西游记',		 			//文件名
+      //         size:'10M',						//文件大小
+      //         modificationDate:'2020-01-01'	//更新时间
+      //       },
+      //       {
+      //         fileID:"10002",						//文件ID 用于后续操作
+      //         type:'pdf',						//文件类型
+      //         name:'红楼梦',		 			//文件名
+      //         size:'10M',						//文件大小
+      //         modificationDate:'2020-01-01'	//更新时间
+      //       },
+      //       {
+      //         fileID:"10003",						//文件ID 用于后续操作
+      //         type:'pdf',						//文件类型
+      //         name:'三国演义',		 			//文件名
+      //         size:'10M',						//文件大小
+      //         modificationDate:'2020-01-01'	//更新时间
+      //       },
+      //       {
+      //         fileID:"10004",						//文件ID 用于后续操作
+      //         type:'pdf',						//文件类型
+      //         name:'水浒传',		 			//文件名
+      //         size:'10M',						//文件大小
+      //         modificationDate:'2020-01-01'	//更新时间
+      //       },
+      //
+      //     ],
+      //
+      //   },
       //uploadFile:null,
       formData:null,
       uploadMessage:'',
@@ -670,36 +749,43 @@ export default {
       optionItem:null,
       folderTree:null,
       open: ['public'],
-      findFolder:[]
+      findFolder:[],
+      loading:false
     }
   },
-  beforeCreate() {
-    // let me=this;
-    // let a = sessionStorage.getItem('token');
-    // let b =  a.substring(1,a.length-1);
-    // this.axios.post('/cloud/user/userCatalogue',{
-    //   token:b
-    // }).then(function (response) {
-    //   console.log(response.data.data);
-    //   if(response.data.data!=null){
-    //     me.item= response.data.data;
-    //     console.log( 'fuck');
-    //     console.log( me.item);
-    //     //me.files = me.dataSolver(this.item);
-    //   }
-    //   // console.log(response.data.data);
-    // }).catch(function (error) {
-    //   console.log(error);
-    // });
-    // this.files = this.dataSolver(this.item);
+  created() {
+
+
   },
   beforeMount() {
     //this.files=this.receiveFiles;
     //let me =this;
 
-    console.log(11111);
-    console.log(this.item);
+    // console.log(11111);
+    // console.log(this.item);
+    let me=this;
+    me.loading=true;
     this.files = this.dataSolver(this.item);
+    let a = sessionStorage.getItem('token');
+    let b =  a.substring(1,a.length-1);
+    this.axios.post('/cloud/user/userCatalogue',{
+      token:b
+    }).then(function (response) {
+      console.log(response.data.data);
+      if(response.data.data!=null){
+        me.item= response.data.data;
+        //console.log( 'fuck');
+        //console.log( me.item);
+        me.files = me.dataSolver(me.item);
+        me.loading=false;
+      }
+      // console.log(response.data.data);
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+
+    //this.files = this.dataSolver(this.item);
 
     //console.log();
   },
@@ -736,6 +822,7 @@ export default {
               modificationDate:this.resultArray[i].modificationDate,
             };
             resultView.push(obj);
+
           }
         }
         this.files=resultView;

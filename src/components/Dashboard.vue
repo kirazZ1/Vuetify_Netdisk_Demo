@@ -98,6 +98,18 @@ export default {
         me.$router.push({  //核心语句
           path: '/dashboard/trash' ,   //跳转的路径
         })
+      }else if(e==='fileManagerManage'){
+        me.$router.push({  //核心语句
+          path: '/dashboard/fileManagerManage' ,   //跳转的路径
+        })
+      }else if(e==='userManage'){
+        me.$router.push({  //核心语句
+          path: '/dashboard/userManage' ,   //跳转的路径
+        })
+      }else if(e==='manageGroupFile'){
+        me.$router.push({  //核心语句
+          path: '/dashboard/manageGroupFile' ,   //跳转的路径
+        })
       }
 
      }

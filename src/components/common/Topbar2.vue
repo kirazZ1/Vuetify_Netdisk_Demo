@@ -57,9 +57,19 @@
           </v-toolbar-items>
             </template>
             <v-card>
-              <v-card-title>
-                <span class="headline">编辑用户信息</span>
-              </v-card-title>
+
+              <v-toolbar
+                  color="light-blue darken-4"
+                  dark
+                  flat
+              >
+                <v-toolbar-title>编辑用户信息</v-toolbar-title>
+
+                <v-spacer></v-spacer>
+                <v-tooltip bottom>
+
+                </v-tooltip>
+              </v-toolbar>
               <v-card-text>
                 <v-container>
                   <v-row>
@@ -210,6 +220,7 @@ export default {
       Bus.$emit('userName',response.data.data.userName);
       Bus.$emit('userTotalZone',response.data.data.userSize);
       Bus.$emit('userUsedZone', response.data.data.userUsed);
+      Bus.$emit('userPermission', response.data.data.userPermission);
       //设置编辑个人信息中文本域的默认值
       me.userModify.userPhone=me.user.userPhone;
       me.userModify.userEmail=me.user.userEmail;
