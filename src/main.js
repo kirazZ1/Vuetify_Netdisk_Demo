@@ -6,6 +6,11 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 import 'nprogress/nprogress.css'
 import NProgress from 'nprogress'
+// import clipboard from 'clipboard';
+// //注册到vue原型上
+// Vue.prototype.clipboard = clipboard;
+
+
 
 Vue.use(VueAxios, axios)
 Vue.config.productionTip = false

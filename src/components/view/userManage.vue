@@ -45,13 +45,13 @@
                   </v-btn>
                 </div>
                 <div class="ma-1 pa-1" >
-                  <v-btn  :disabled="forbiddenButton" color="primary">
+                  <v-btn  @click="Forbid()" :disabled="forbiddenButton" color="primary">
                     <v-icon dark left>{{ button3.icon }}</v-icon>
                     禁用
                   </v-btn>
                 </div>
                 <div class="ma-1 pa-1" >
-                  <v-btn :disabled="releaseForbiddenButton"  color="primary">
+                  <v-btn @click="ReleaseForbid()" :disabled="releaseForbiddenButton"  color="primary">
                     <v-icon dark left>{{ button4.icon }}</v-icon>
                     解除禁用
                   </v-btn>
@@ -746,6 +746,15 @@ export default {
       console.log(this.userInfo);
     },
     Update(){
+      // {
+      //   "token":"0fe4dbcf4f21451193633d5153470505",
+      //     "userId":"04dbcd031e304561abfbd7fa46a986fb",
+      //     "userWorkId":"202000000001",
+      //     "userName":"zhangsan",
+      //     "userSex":"男",
+      //     "userMobie":"15767195555",
+      //     "userEmail":"5811111123@qq.com"
+      // }
       alert('修改信息');
     },
     importButton(item){
@@ -760,7 +769,26 @@ export default {
       alert('单次导入');
     },
     Delete(){
-      alert('删除');
+      if(this.selected.length===0){
+        alert('请勾选要删除的用户');
+      }else{
+        alert('删除用户  '+this.selected[0].workID);
+      }
+
+    },
+    Forbid(){
+      if(this.selected.length===0){
+        alert('请勾选要禁用的用户');
+      }else{
+        alert('禁用  '+this.selected[0].workID);
+      }
+    },
+    ReleaseForbid(){
+      if(this.selected.length===0){
+        alert('请勾选要解除禁用的用户');
+      }else{
+        alert('解除禁用  '+this.selected[0].workID);
+      }
     }
   }
 }

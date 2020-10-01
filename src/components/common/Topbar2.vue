@@ -209,9 +209,10 @@ export default {
       me.user.userEmail=response.data.data.userEmail;       //用户邮箱
       let userCreateTimeString=response.data.data.userTime;     //拿到时间字符串
       //以下进行时间格式转换
-      let d = new Date(userCreateTimeString);
-      // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
-      me.user.userCreateTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate())+ ' ' + (d.getHours()<10 ?"0"+d.getDate():d.getDate()) + ':' + (d.getMinutes()<10 ? "0" + d.getMinutes(): d.getMinutes()) + ':' + (d.getSeconds()<10 ? "0" + d.getSeconds() : d.getSeconds() );
+      me.user.userCreateTime=me.timefilters(userCreateTimeString);
+      // let d = new Date(userCreateTimeString);
+      // // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
+      // me.user.userCreateTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate())+ ' ' + (d.getHours()<10 ?"0"+d.getDate():d.getDate()) + ':' + (d.getMinutes()<10 ? "0" + d.getMinutes(): d.getMinutes()) + ':' + (d.getSeconds()<10 ? "0" + d.getSeconds() : d.getSeconds() );
       //转换完毕
       me.user.userTotalZone = response.data.data.userSize;
       me.user.userUsedZone =  response.data.data.userUsed;
@@ -239,6 +240,26 @@ export default {
       Bus.$emit('msg1', '开门或者关门')
     },
     //退出登录按钮
+
+    timefilters(val) {
+      if (val == null || val == "") {
+        return "暂无时间";
+      } else {
+        let d = new Date(val);   //val 为表格内取到的后台时间
+        console.log(d);
+        let month =
+            d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1;
+        let day = d.getDate() < 10 ? "0" + d.getDate() : d.getDate();
+        // let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+        // let min = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+        // let sec = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
+        let times=d.getFullYear() + '-' + month + '-' + day ;
+        return times;
+      }
+
+    },
+
+
     exit(){
       var me=this;
 

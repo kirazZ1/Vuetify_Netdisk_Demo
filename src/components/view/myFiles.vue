@@ -774,6 +774,7 @@ export default {
       console.log(response.data.data);
       if(response.data.data!=null){
         me.item= response.data.data;
+        me.breadcrumb_items[0].id=response.data.data.directID;
         //console.log( 'fuck');
         //console.log( me.item);
         me.files = me.dataSolver(me.item);
@@ -1130,7 +1131,7 @@ export default {
       console.log(this.selected);
     },
     uploadFile(){
-      console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
+      //console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
       if(this.uploadFileName===''){
         //alert("请输入文件名");
         this.uploadMessage="请输入文件名！";
@@ -1154,7 +1155,38 @@ export default {
           }
         }
         if(flag===0){
-          alert("可以上传");
+          //let formData = new window.FormData()
+
+          let a = sessionStorage.getItem('token');
+          //let resultArray=[];
+          let b =  a.substring(1,a.length-1);
+          let size =document.querySelector('input[type=file]').files[0].size;
+          size = size / 1024;//kb
+          size = (size / 1024).toFixed(2);
+
+          let fileSize = size + 'MB';
+          //alert(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
+          this.axios.post('/cloud/user/showDepartment',{
+            token:b,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+            fileName:this.uploadFileName+'.'+type,
+            fileSize:fileSize,
+            fileType:type
+          }).then(function (response) {
+            console.log(response.data.data);
+          }).catch(function (error) {
+            console.log(error);
+          });
+  //         ｛
+  //
+	//            token：
+	//            directID:       //文件夹ID
+  //            fileName:'test.txt'	//文件名
+  //            fileSize:'3.3MB'		//文件大小 如 3.3MB
+  //            fileType:'txt'		//文件类型 如 txt
+  //          ｝
+  //
+          //formData.append(this.uploadFileName, document.querySelector('input[type=file]').files[0]);
           //在这里发送请求给后端接口
           //上传的内容用formData封装（父文件夹id，文件名和文件）
           //父文件夹id获取
