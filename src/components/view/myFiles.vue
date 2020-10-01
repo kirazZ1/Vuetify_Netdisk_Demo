@@ -1132,6 +1132,15 @@ export default {
     },
     uploadFile(){
       //console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
+      let  reopt = {
+        method:"put",
+        url:"",
+        withCredentials:false,
+        headers:{'content-type': 'multipart/form-data'},
+        maxRedirects:0,
+        responseType:'text',
+        data:null,
+      };
       if(this.uploadFileName===''){
         //alert("请输入文件名");
         this.uploadMessage="请输入文件名！";
@@ -1163,20 +1172,80 @@ export default {
           let size =document.querySelector('input[type=file]').files[0].size;
           size = size / 1024;//kb
           size = (size / 1024).toFixed(2);
+          //console.log(document.getElementById('upload').value+size);
 
-          let fileSize = size + 'MB';
+          // let obj={
+          //     token:b,
+          //     directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+          //     fileName:this.uploadFileName,
+          //     fileSize:size,
+          //     fileType:type
+          //   };
+          // console.log(obj);
           //alert(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
-          this.axios.post('/cloud/user/showDepartment',{
+          let me=this;
+          this.axios.post('/cloud/user/getUploadUrl',{
             token:b,
             directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
-            fileName:this.uploadFileName+'.'+type,
-            fileSize:fileSize,
+            fileName:this.uploadFileName,
+            fileSize:size,
             fileType:type
           }).then(function (response) {
             console.log(response.data.data);
+            if(response.data.data.uploadUrl!==''){
+              reopt.data= document.getElementById("upload").value;
+              reopt.url=response.data.data.uploadUrl;
+              me.axios.request(reopt).then(function (response) {
+                if(response.status < 300){
+                  console.log('Creating object using temporary signature succeed.');
+                  me.axios.post('/cloud/user/upload',{
+                    token:b,
+                    directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+                    fileName:me.uploadFileName,
+                    fileSize:size,
+                    fileType:type
+                  }).then(function(response){
+                    console.log(response.data);
+                    if(response.data.status===200){
+                      alert('上传成功');
+                      me.axios.post('/cloud/user/userCatalogue',{
+                        token:b
+                      }).then(function (response) {
+                        console.log(response.data.data);
+                        if(response.data.data!=null){
+                          me.item= response.data.data;
+                          me.breadcrumb_items[0].id=response.data.data.directID;
+                          //console.log( 'fuck');
+                          //console.log( me.item);
+                          me.files = me.dataSolver(me.item);
+                          me.loading=false;
+                        }
+                        // console.log(response.data.data);
+                      }).catch(function (error) {
+                        console.log(error);
+                      });
+                    }
+                  }).catch(function (error){
+                    console.log(error);
+                  });
+                }else{
+                  console.log('Creating object using temporary signature failed!');
+                  console.log('status:' + response.status);
+                  console.log('\n');
+                }
+                console.log(response.data);
+                console.log('\n');
+              }).catch(function (err) {
+                console.log('Creating object using temporary signature failed!');
+                console.log(err);
+                console.log('\n');
+              });
+            }
           }).catch(function (error) {
             console.log(error);
           });
+
+
   //         ｛
   //
 	//            token：
