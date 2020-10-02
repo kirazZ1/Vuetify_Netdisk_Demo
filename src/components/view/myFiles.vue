@@ -530,8 +530,11 @@
 import {
   mdiCloudUpload,
   mdiCloudDownload,
-
-  mdiRefresh
+  mdiZipBox,
+  mdiFilePowerpoint,
+  mdiRefresh,
+  mdiFileVideo,
+  mdiFileMusic
 } from '@mdi/js'
 
 
@@ -611,10 +614,22 @@ export default {
         md: 'mdi-markdown',
         pdf: 'mdi-file-pdf',
         png: 'mdi-file-image',
+        jpeg: 'mdi-file-image',
         jpg: 'mdi-file-image',
         txt: 'mdi-file-document-outline',
         xls: 'mdi-file-excel',
-        docx:'mdi-file-word'
+        doc:'mdi-file-word',
+        docx:'mdi-file-word',
+        zip:mdiZipBox,
+        rar:mdiZipBox,
+        '7z':mdiZipBox,
+        ppt:mdiFilePowerpoint,
+        pptx:mdiFilePowerpoint,
+        mp4:mdiFileVideo,
+        avi:mdiFileVideo,
+        mp3:mdiFileMusic,
+        m4a:mdiFileMusic,
+        flac:mdiFileMusic,
 
       },
       //  directID:'10000',        //文件夹ID
