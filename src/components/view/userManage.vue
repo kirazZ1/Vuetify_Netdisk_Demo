@@ -5,7 +5,7 @@
   <div>
     <div class="ma-1 pa-1"></div>
       <v-container>
-        <v-card elevation="0">
+        <v-card elevation="1">
           <v-row>
             <v-col md="6">
               <v-row>
@@ -415,11 +415,12 @@
         </v-dialog>
         <v-card>
           <v-data-table
-              dense
               :loading="loading"
               :headers="headers"
               :items="Info"
               item-key="workID"
+              no-data-text="暂时没有用户条目"
+              loading-text="Loading... Please wait"
               :single-select="singleSelect"
               class="elevation-1"
               v-model="selected"
@@ -433,7 +434,7 @@
                   <v-btn
                       color="primary"
                       dark
-                      small
+
                       text
                       v-bind="attrs"
                       v-on="on"
@@ -450,6 +451,7 @@
                       @click="userListAction(item)"
                   >
                     <v-list-item-title>{{ item.title }}</v-list-item-title>
+
                   </v-list-item>
                 </v-list>
               </v-menu>
@@ -514,18 +516,8 @@ export default {
         { text: '创建时间', value: 'createTime' },
         { text: '', value: 'action' },
       ],
-      Info:[
-        {
-          workID:'',
-          name:'',
-          sex:'',
-          phone:'',
-          email:'',
-          createTime:'',
-          status:0
+      Info:[],
 
-        }
-      ],
       importItem:[
         { title: '单次导入' },
         { title: '批量导入' },
@@ -652,13 +644,7 @@ export default {
           }
           obj.phone=response.data.data[i].userMobie;
           obj.email=response.data.data[i].userEmail;
-          //obj.createTime=response.data.data[i].userTime;
-
-          //以下进行时间格式转换
-          let d = new Date(response.data.data[i].userTime);
-          // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
-          obj.createTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate());
-          //转换完毕
+          obj.createTime=response.data.data[i].userTime;
           obj.status=response.data.data[i].userStatus;
           resultArray.push(obj);
         }
@@ -827,33 +813,12 @@ export default {
         }).then(function (response){
           console.log(response.data);
           if(response.data.status===200){
+            alert("禁用成功！");
+            me.selected=[];
             me.axios.post('/cloud/user/manage/all',{
               token:b
             }).then(function (response) {
               console.log(response.data.data);
-              // userEmail: "5811111123@qq.com"
-              // userGarbage: "ddd79393e4294e4f945677bc5c1af433"
-              // userId: "04dbcd031e304561abfbd7fa46a986fb"
-              // userMobie: "15767195555"
-              // userName: "zhangsan1"
-              // userPassword: "1111111"
-              // userPermission: 3
-              // userRootId: "a6332e748b2749a5bfd2e2dcd87b1987"
-              // userSex: "M"
-              // userSize: 20
-              // userStatus: 1
-              // userTime: "2020-09-25T03:15:22.000+0000"
-              // userUsed: 0
-              // userWorkId: 202000000001
-              // {
-              //   workID:'10010',
-              //       name:'张三',
-              //     sex:'男',
-              //     phone:'123456789',
-              //     email:'1223131231@qq.com',
-              //     createTime:'2020-01-01',
-              //     status:0
-              // },
               if(response.data.data.length!==0){
                 for(let i=0;i<response.data.data.length;i++){
                   let obj={
@@ -877,12 +842,8 @@ export default {
                   obj.phone=response.data.data[i].userMobie;
                   obj.email=response.data.data[i].userEmail;
                   //obj.createTime=response.data.data[i].userTime;
+                  obj.createTime=response.data.data[i].userTime;
 
-                  //以下进行时间格式转换
-                  let d = new Date(response.data.data[i].userTime);
-                  // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
-                  obj.createTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate());
-                  //转换完毕
                   obj.status=response.data.data[i].userStatus;
                   resultArray.push(obj);
                 }
@@ -894,7 +855,7 @@ export default {
             }).catch(function (error) {
               console.log(error);
             });
-            alert("删除成功！");
+
 
           }
         }).catch(function (error){
@@ -908,7 +869,68 @@ export default {
       if(this.selected.length===0){
         alert('请勾选要解除禁用的用户');
       }else{
-        alert('解除禁用  '+this.selected[0].workID);
+       // alert('解除禁用  '+this.selected[0].workID);
+
+        let me = this;
+        let a = sessionStorage.getItem('token');
+        let resultArray=[];
+        let b =  a.substring(1,a.length-1);
+        this.axios.post('/cloud/user/manage/upStatus1',{
+          token:b,
+          userID:this.selected[0].userID
+        }).then(function (response){
+          console.log(response.data);
+          alert("解除禁用成功！");
+          me.selected=[];
+          if(response.data.status===200){
+            me.axios.post('/cloud/user/manage/all',{
+              token:b
+            }).then(function (response) {
+              console.log(response.data.data);
+              if(response.data.data.length!==0){
+                for(let i=0;i<response.data.data.length;i++){
+                  let obj={
+                    userID:'',
+                    workID:'',
+                    name:'',
+                    sex:'',
+                    phone:'',
+                    email:'',
+                    createTime:'',
+                    status:0
+                  };
+                  obj.userID=response.data.data[i].userId;
+                  obj.workID=response.data.data[i].userWorkId;
+                  obj.name=response.data.data[i].userName;
+                  if(response.data.data[i].userSex==="M"){
+                    obj.sex="男";
+                  }else{
+                    obj.sex="女";
+                  }
+                  obj.phone=response.data.data[i].userMobie;
+                  obj.email=response.data.data[i].userEmail;
+                  //obj.createTime=response.data.data[i].userTime;
+                  obj.createTime=response.data.data[i].userTime;
+
+                  obj.status=response.data.data[i].userStatus;
+                  resultArray.push(obj);
+                }
+              }
+              me.Info=resultArray;
+              me.tempInfo=resultArray;
+              me.loading=false;
+              // console.log(response.data.data);
+            }).catch(function (error) {
+              console.log(error);
+            });
+
+
+          }
+        }).catch(function (error){
+          console.log(error);
+        })
+        //alert('禁用  '+this.selected[0].workID);
+        //console.log(this.selected[0]);
       }
     },
     addMoreUser(){

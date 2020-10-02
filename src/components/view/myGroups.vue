@@ -984,15 +984,15 @@ export default {
     },
     uploadFile(){
       //console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
-      let  reopt = {
-        method:"put",
-        url:"",
-        withCredentials:false,
-        headers:{'content-type': 'multipart/form-data'},
-        maxRedirects:0,
-        responseType:'text',
-        data:null,
-      };
+      // let  reopt = {
+      //   method:"put",
+      //   url:"",
+      //   withCredentials:false,
+      //   headers:{'content-type': 'multipart/form-data'},
+      //   maxRedirects:0,
+      //   responseType:'text',
+      //   data:null,
+      // };
       if(this.uploadFileName===''){
         //alert("请输入文件名");
         this.uploadMessage="请输入文件名！";
@@ -1036,60 +1036,124 @@ export default {
           // console.log(obj);
           //alert(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
           let me=this;
+          this.uploadProgress=true;
+          this.clickToUpload=true;
+          this.closeUploadDialog=true;
           this.axios.post('/cloud/user/getUploadUrl',{
             token:b,
             directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
-            fileName:this.uploadFileName,
+            fileName:this.uploadFileName+"."+type,
             fileSize:size,
             fileType:type
           }).then(function (response) {
             console.log(response.data.data);
             if(response.data.data.uploadUrl!==''){
-              reopt.data= document.getElementById("upload").value;
-              reopt.url=response.data.data.uploadUrl;
-              me.axios.request(reopt).then(function (response) {
-                if(response.status < 300){
-                  console.log('Creating object using temporary signature succeed.');
-                  me.axios.post('/cloud/user/upload',{
-                    token:b,
-                    directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
-                    fileName:me.uploadFileName,
-                    fileSize:size,
-                    fileType:type
-                  }).then(function(response){
-                    console.log(response.data);
-                    if(response.data.status===200){
-                      alert('上传成功');
-                      me.axios.post('/cloud/user/departmentCatalogue',{
-                        token:b,
-                        departID:me.departIDNow
-                      }).then(function (response) {
-                        console.log(response.data.data);
-                        me.item=response.data.data;
-                        me.files=me.dataSolver(response.data.data);
-                        console.log(me.files);
-                        me.loading=false;
-                        //me.listItems=response.data.data;
-                      }).catch(function (error) {
-                        console.log(error);
-                      });
-                    }
-                  }).catch(function (error){
-                    console.log(error);
-                  });
-                }else{
-                  console.log('Creating object using temporary signature failed!');
-                  console.log('status:' + response.status);
+              // let reader = new FileReader();
+              //let  UrlBase64 = reader.readAsDataURL(document.getElementById("upload").files[0]);
+              // let formData = new window.FormData();
+              // formData.append(me.uploadFileName, document.getElementById("upload").files[0]);
+              // reopt.data= formData;
+              // reopt.data=UrlBase64;
+              let file=document.getElementById("upload").files[0];
+              let reader = new FileReader();
+
+              reader.readAsArrayBuffer(file);
+              reader.onloadend = function() {
+                let content = reader.result;
+                let reopt = {
+                  method : "put",
+                  url : response.data.data.uploadUrl,
+                  withCredentials: false,
+                  headers : {'content-type': 'multipart/form-data'},
+                  maxRedirects : 0,
+                  responseType : 'text',
+                  data : content,
+                };
+                me.axios.request(reopt).then(function (response) {
+                  if(response.status < 300){
+                    console.log('Creating object using temporary signature succeed.');
+
+                    me.loading=true;
+                    // this.files = this.dataSolver(this.item);
+                    //this.files = this.dataSolver(this.item);
+                    let a = sessionStorage.getItem('token');
+                    //let resultArray=[];
+                    let b =  a.substring(1,a.length-1);
+                    //this.departIDNow=item.departID;
+                    me.axios.post('/cloud/user/departmentCatalogue',{
+                      token:b,
+                      departID:me.departIDNow
+                    }).then(function (response) {
+                      console.log(response.data.data);
+                      me.item=response.data.data;
+                      me.files=me.dataSolver(response.data.data);
+                      console.log(me.files);
+                      me.loading=false;
+                      //me.listItems=response.data.data;
+                    }).catch(function (error) {
+                      console.log(error);
+                    });
+                  }else{
+                    console.log('Creating object using temporary signature failed!');
+                    console.log('status:' + response.status);
+                    console.log('\n');
+                  }
+                  console.log(response.data);
                   console.log('\n');
-                }
-                console.log(response.data);
-                console.log('\n');
-              }).catch(function (err) {
-                console.log('Creating object using temporary signature failed!');
-                console.log(err);
-                console.log('\n');
-              });
+                }).catch(function (err) {
+                  console.log('Creating object using temporary signature failed!');
+                  console.log(err);
+                  console.log('\n');
+                });
+              };
             }
+            //   reopt.url=response.data.data.uploadUrl;
+            //   me.axios.request(reopt).then(function (response) {
+            //     if(response.status < 300){
+            //       console.log('Creating object using temporary signature succeed.');
+            //       me.axios.post('/cloud/user/upload',{
+            //         token:b,
+            //         directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+            //         fileName:me.uploadFileName,
+            //         fileSize:size,
+            //         fileType:type
+            //       }).then(function(response){
+            //         console.log(response.data);
+            //         if(response.data.status===200){
+            //           alert('上传成功');
+            //           me.axios.post('/cloud/user/userCatalogue',{
+            //             token:b
+            //           }).then(function (response) {
+            //             console.log(response.data.data);
+            //             if(response.data.data!=null){
+            //               me.item= response.data.data;
+            //               me.breadcrumb_items[0].id=response.data.data.directID;
+            //               //console.log( 'fuck');
+            //               //console.log( me.item);
+            //               me.files = me.dataSolver(me.item);
+            //               me.loading=false;
+            //             }
+            //             // console.log(response.data.data);
+            //           }).catch(function (error) {
+            //             console.log(error);
+            //           });
+            //         }
+            //       }).catch(function (error){
+            //         console.log(error);
+            //       });
+            //     }else{
+            //       console.log('Creating object using temporary signature failed!');
+            //       console.log('status:' + response.status);
+            //       console.log('\n');
+            //     }
+            //     console.log(response.data);
+            //     console.log('\n');
+            //   }).catch(function (err) {
+            //     console.log('Creating object using temporary signature failed!');
+            //     console.log(err);
+            //     console.log('\n');
+            //   });
+
           }).catch(function (error) {
             console.log(error);
           });

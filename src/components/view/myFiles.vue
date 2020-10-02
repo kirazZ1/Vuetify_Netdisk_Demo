@@ -419,7 +419,7 @@
                   :href="item.href"
                   large
               >
-                <v-btn text x-large color="primary"  :disabled="item.disabled" @click="breadcrumb(item)">{{ item.text }} </v-btn>
+                <v-btn text large color="primary"  :disabled="item.disabled" @click="breadcrumb(item)">{{ item.text }} </v-btn>
 
               </v-breadcrumbs-item>
             </template>
@@ -441,6 +441,7 @@
           :items="files"
           :single-select="singleSelect"
             no-data-text="暂时没有文件"
+
           item-key="id"
           show-select
           class="elevation-1"
@@ -456,7 +457,9 @@
 <!--          这里是表格中显示文件名的位置-->
 <!--          如果是文件夹名称，则可点击进入，面包屑对应更新-->
 <!--          初步设想，用v-if,v-else实现对type的判断，跟上面图标判别的逻辑大致相同-->
-          <v-btn text @click="clickFile(item)"> {{ item.name }}</v-btn>
+<!--          <v-btn text @click="clickFile(item)">-->
+            <span @click="clickFile(item)">                {{ item.name }}</span>
+<!--          </v-btn>-->
 
         </template>
 
@@ -475,7 +478,6 @@
             </template>
             <span>分享文件</span>
           </v-tooltip>
-
 
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
@@ -872,52 +874,99 @@ export default {
       this.uploadButton=false;
       this.selected=[];
     },
-    //删除文件
+    //删除文件/文件夹
     deleteItem (item) {
       // {
       //      "token": "eabe00623c924cd6a6267eec187c2c11",
       //     "directID": "1",
       //     "fileID": "1"
       // }
-      alert("删除"+item.id);
-      console.log(item);
       let me = this;
       //1.处理token
       let a = sessionStorage.getItem('token');
       let b =  a.substring(1,a.length-1);
-      //2.取出fileID（item.id）
-      //3.取出directID(breadcrumb_item[breadcrumb_item.lenth-1].id)
-      this.axios.post('/cloud/delete',{
-          token:b,
-          fileID:item.id,
-          directID:this.breadcrumb_items[this.breadcrumb_items.length-1]
-      }).then(function(response){
-          console.log(response.data);
-        me.loading=true;
-        me.axios.post('/cloud/user/userCatalogue',{
-          token:b
-        }).then(function (response) {
-          console.log(response.data.data);
-          if(response.data.data!=null){
-            me.item= response.data.data;
-            me.breadcrumb_items[0].id=response.data.data.directID;
-            //console.log( 'fuck');
-            //console.log( me.item);
-            me.files = me.dataSolver(me.item);
-            me.loading=false;
-            me.clickToUpload=false;
-            me.closeUploadDialog=false;
-            me.uploadProgress=false;
-          }
-          // console.log(response.data.data);
-        }).catch(function (error) {
-          console.log(error);
-        });
-      }).catch(function (error){
-            console.log(error);
-      })
-      // const index = this.files.indexOf(item)
-      // confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
+      console.log(item);
+      if(item.type===null){//删除文件夹
+        //alert('删除文件夹');
+          this.axios.post('/cloud/user/deleteDirectory',{
+            token:b,
+            directID:item.id
+          }).then(function (response){
+              console.log(response);
+            if(response.data.status===200){
+              alert('删除成功！');
+              while(me.breadcrumbNum!=1){
+                me.breadcrumb_items.pop();
+                me.breadcrumbNum--;
+              }
+              me.breadcrumb_items[0].disabled=true;
+              me.loading=true;
+              me.axios.post('/cloud/user/userCatalogue',{
+                token:b
+              }).then(function (response) {
+                console.log(response.data.data);
+                if(response.data.data!=null){
+                  me.item= response.data.data;
+                  me.breadcrumb_items[0].id=response.data.data.directID;
+                  //console.log( 'fuck');
+                  //console.log( me.item);
+                  me.files = me.dataSolver(me.item);
+                  me.loading=false;
+
+                }
+                console.log(response.data.data);
+              }).catch(function (error) {
+                console.log(error);
+              });
+            }
+          }).catch(function (error){
+              console.log(error);
+          });
+      }else{//删除文件
+        console.log(item.id);
+        console.log(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
+
+        //2.取出fileID（item.id）
+        //3.取出directID(breadcrumb_item[breadcrumb_item.lenth-1].id)
+        this.axios.post('/cloud/user/deleteFile',{
+            token:b,
+            fileID:item.id,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id
+        }).then(function(response){
+            console.log(response.data);
+            if(response.data.status===200){
+              alert('删除成功！');
+              me.loading=true;
+              while(me.breadcrumbNum!=1){
+                me.breadcrumb_items.pop();
+                me.breadcrumbNum--;
+              }
+              me.breadcrumb_items[0].disabled=true;
+              me.axios.post('/cloud/user/userCatalogue',{
+                token:b
+              }).then(function (response) {
+                console.log(response.data.data);
+                if(response.data.data!=null){
+                  me.item= response.data.data;
+                  me.breadcrumb_items[0].id=response.data.data.directID;
+                  //console.log( 'fuck');
+                  //console.log( me.item);
+                  me.files = me.dataSolver(me.item);
+                  me.loading=false;
+
+
+                }
+                console.log(response.data.data);
+              }).catch(function (error) {
+                console.log(error);
+              });
+            }
+        }).catch(function (error){
+              console.log(error);
+        })
+
+      }
+
     },
     //刷新文件列表
     Refresh(){
@@ -931,6 +980,34 @@ export default {
       //2.根据当前面包屑来找到文件夹
       //已经有的json处理方法：dataSolver(item)，用于把传回的格式转化成为列表可接受的json
       //可以复用的代码breadcrumb(item)中步骤2（可进行封装）
+      let me=this;
+      this.files=[];
+      me.loading=true;
+
+      while(me.breadcrumbNum!=1){
+        me.breadcrumb_items.pop();
+        me.breadcrumbNum--;
+      }
+      me.breadcrumb_items[0].disabled=true;
+      this.files = this.dataSolver(this.item);
+      let a = sessionStorage.getItem('token');
+      let b =  a.substring(1,a.length-1);
+      this.axios.post('/cloud/user/userCatalogue',{
+        token:b
+      }).then(function (response) {
+        console.log(response.data.data);
+        if(response.data.data!=null){
+          me.item= response.data.data;
+          me.breadcrumb_items[0].id=response.data.data.directID;
+          //console.log( 'fuck');
+          //console.log( me.item);
+          me.files = me.dataSolver(me.item);
+          me.loading=false;
+        }
+        // console.log(response.data.data);
+      }).catch(function (error) {
+        console.log(error);
+      });
     },
     clickFile(item){//点击文件触发的事件
       //根据type字段来识别是否为文件夹
@@ -1307,6 +1384,11 @@ export default {
                       if(response.data.status===200){
                         alert('上传成功');
                         me.loading=true;
+                        while(me.breadcrumbNum!=1){
+                          me.breadcrumb_items.pop();
+                          me.breadcrumbNum--;
+                        }
+                        me.breadcrumb_items[0].disabled=true;
                         me.axios.post('/cloud/user/userCatalogue',{
                           token:b
                         }).then(function (response) {
@@ -1321,6 +1403,7 @@ export default {
                             me.clickToUpload=false;
                             me.closeUploadDialog=false;
                             me.uploadProgress=false;
+                            me.uploadDialog=false;
                           }
                                 // console.log(response.data.data);
                         }).catch(function (error) {
@@ -1344,52 +1427,6 @@ export default {
                 });
               };
               }
-            //   reopt.url=response.data.data.uploadUrl;
-            //   me.axios.request(reopt).then(function (response) {
-            //     if(response.status < 300){
-            //       console.log('Creating object using temporary signature succeed.');
-            //       me.axios.post('/cloud/user/upload',{
-            //         token:b,
-            //         directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
-            //         fileName:me.uploadFileName,
-            //         fileSize:size,
-            //         fileType:type
-            //       }).then(function(response){
-            //         console.log(response.data);
-            //         if(response.data.status===200){
-            //           alert('上传成功');
-            //           me.axios.post('/cloud/user/userCatalogue',{
-            //             token:b
-            //           }).then(function (response) {
-            //             console.log(response.data.data);
-            //             if(response.data.data!=null){
-            //               me.item= response.data.data;
-            //               me.breadcrumb_items[0].id=response.data.data.directID;
-            //               //console.log( 'fuck');
-            //               //console.log( me.item);
-            //               me.files = me.dataSolver(me.item);
-            //               me.loading=false;
-            //             }
-            //             // console.log(response.data.data);
-            //           }).catch(function (error) {
-            //             console.log(error);
-            //           });
-            //         }
-            //       }).catch(function (error){
-            //         console.log(error);
-            //       });
-            //     }else{
-            //       console.log('Creating object using temporary signature failed!');
-            //       console.log('status:' + response.status);
-            //       console.log('\n');
-            //     }
-            //     console.log(response.data);
-            //     console.log('\n');
-            //   }).catch(function (err) {
-            //     console.log('Creating object using temporary signature failed!');
-            //     console.log(err);
-            //     console.log('\n');
-            //   });
 
           }).catch(function (error) {
             console.log(error);
@@ -1488,6 +1525,11 @@ export default {
              me.clickToNewFolder=false;
              me.closeCreateFolder=false;
              alert('新建文件夹成功');
+             while(me.breadcrumbNum!=1){
+               me.breadcrumb_items.pop();
+               me.breadcrumbNum--;
+             }
+             me.breadcrumb_items[0].disabled=true;
              me.loading=true;
              me.axios.post('/cloud/user/userCatalogue',{
                token:b
@@ -1544,7 +1586,7 @@ export default {
           alert("暂不支持下载文件夹！");
 
         }else{
-          alert("下载文件"+downloadFile.name);
+          //alert("下载文件"+downloadFile.name);
           // {
           //   token:
           //   directID:       //文件夹ID
@@ -1640,8 +1682,138 @@ export default {
       if(this.renameFileName===''){
         this.renameAlert=true;
         this.renameMessage="文件名不能为空";
-      }else{
-        alert("重命名"+this.optionItem.name+"为"+this.renameFileName);
+      }else {
+        console.log(this.optionItem);
+        if(this.optionItem.type===null){//文件夹重命名
+          //需要进行同目录同名检验
+          let flag = 0;
+          for (let i = 0; i < this.files.length; i++) {
+            if (this.files[i].type === null) {//type字段为null,说明为文件夹
+              if (this.renameFileName === this.files[i].name) {
+                flag++;
+              }
+            }
+          }
+          //console.log(this.files[1]);
+          if (flag === 1) {
+            alert("存在同名文件夹");
+          }else{
+            //alert("可以重命名");
+            // {
+            //   "token":"c88f4abaa675463787f2b3d2cc91d891",
+            //     "directID":"1",
+            //     "fileID":"1",
+            //     "newName":"新的命名"
+            // }
+            let a = sessionStorage.getItem('token');
+            //let resultArray=[];
+            let b =  a.substring(1,a.length-1);
+            let me = this;
+            this.axios.post('/cloud/user/redefilename',{
+              token:b,
+              directID:this.optionItem.id,
+              newName:this.renameFileName
+            }).then(function (response){
+              console.log(response);
+              if(response.data.status===200){
+                alert('重命名成功！');
+                console.log(response.data);
+                me.loading=true;
+                while(me.breadcrumbNum!=1){
+                  me.breadcrumb_items.pop();
+                  me.breadcrumbNum--;
+                }
+                me.breadcrumb_items[0].disabled=true;
+                me.axios.post('/cloud/user/userCatalogue',{
+                  token:b
+                }).then(function (response) {
+                  console.log(response.data.data);
+                  if(response.data.data!=null){
+                    me.item= response.data.data;
+                    me.breadcrumb_items[0].id=response.data.data.directID;
+                    //console.log( 'fuck');
+                    //console.log( me.item);
+                    me.files = me.dataSolver(me.item);
+                    me.loading=false;
+                    me.renameDialog=false;
+                    // this.createFolderProgress=false;
+                    // this.clickToNewFolder=false;
+                    // this.closeCreateFolder=false;
+                  }
+                  // console.log(response.data.data);
+                }).catch(function (error) {
+                  console.log(error);
+                });
+              }
+            }).catch(function (error){
+              console.log(error);
+            })
+
+
+          }
+        }else{//文件重命名
+          let flag = 0;
+          for(let i=0;i<this.files.length;i++){
+            if(this.files[i].type !== null){
+              //console.log(this.renameFileName+"."+this.optionItem.type);
+              let name=this.renameFileName+"."+this.optionItem.type;
+              //console.log(this.files[i].name);
+              if(name === this.files[i].name){
+                flag++;
+              }
+            }
+          }
+          if (flag !== 0) {
+            alert("存在同名文件");
+          }else{
+           // alert("可以重命名");
+            //this.renameFileName+"."+this.optionItem.type
+            let a = sessionStorage.getItem('token');
+            //let resultArray=[];
+            let b =  a.substring(1,a.length-1);
+            let me = this;
+            this.axios.post('/cloud/user/refilename',{
+              token:b,
+              directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+              fileID:this.optionItem.id,
+              newName:this.renameFileName+"."+this.optionItem.type
+            }).then(function (response){
+              console.log(response);
+              if(response.data.status===200){
+                alert('重命名成功！');
+                console.log(response.data);
+                while(me.breadcrumbNum!=1){
+                  me.breadcrumb_items.pop();
+                  me.breadcrumbNum--;
+                }
+                me.breadcrumb_items[0].disabled=true;
+                me.loading=true;
+                me.axios.post('/cloud/user/userCatalogue',{
+                  token:b
+                }).then(function (response) {
+                  console.log(response.data.data);
+                  if(response.data.data!=null){
+                    me.item= response.data.data;
+                    me.breadcrumb_items[0].id=response.data.data.directID;
+                    //console.log( 'fuck');
+                    //console.log( me.item);
+                    me.files = me.dataSolver(me.item);
+                    me.loading=false;
+                    me.renameDialog=false;
+                    // this.createFolderProgress=false;
+                    // this.clickToNewFolder=false;
+                    // this.closeCreateFolder=false;
+                  }
+                  // console.log(response.data.data);
+                }).catch(function (error) {
+                  console.log(error);
+                });
+              }
+            }).catch(function (error){
+              console.log(error);
+            })
+          }
+        }
       }
     }
   }
