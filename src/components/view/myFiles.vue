@@ -61,6 +61,14 @@
 
               </v-tooltip>
             </v-toolbar>
+            <v-progress-linear
+                :active="uploadProgress"
+
+                indeterminate
+                absolute
+                bottom
+                color="deep-purple accent-4"
+            ></v-progress-linear>
             <v-card-text>
               <v-container>
                 <v-text-field
@@ -76,8 +84,8 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="uploadDialog = false">关闭</v-btn>
-              <v-btn color="blue darken-1" text @click="uploadFile()">上传</v-btn>
+              <v-btn :disabled="closeUploadDialog" color="blue darken-1" text  @click="uploadDialog = false">关闭</v-btn>
+              <v-btn :disabled="clickToUpload" color="blue darken-1" text @click="uploadFile()">上传</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -111,6 +119,13 @@
 
             </v-tooltip>
           </v-toolbar>
+          <v-progress-linear
+              :active="createFolderProgress"
+              indeterminate
+              absolute
+              bottom
+              color="deep-purple accent-4"
+          ></v-progress-linear>
           <v-card-text>
             <v-container>
               <v-text-field
@@ -126,8 +141,8 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="newFolderDialog = false">关闭</v-btn>
-            <v-btn color="blue darken-1" text @click="newFolder()">创建</v-btn>
+            <v-btn :disabled="closeCreateFolder" color="blue darken-1" text @click="newFolderDialog = false">关闭</v-btn>
+            <v-btn :disabled="clickToNewFolder" color="blue darken-1" text @click="newFolder()">创建</v-btn>
           </v-card-actions>
         </v-card>
         </v-dialog>
@@ -750,7 +765,13 @@ export default {
       folderTree:null,
       open: ['public'],
       findFolder:[],
-      loading:false
+      loading:false,
+      uploadProgress:false,
+      createFolderProgress:false,
+      closeUploadDialog:false,
+      clickToUpload:false,
+      closeCreateFolder:false,
+      clickToNewFolder:false
     }
   },
   created() {
@@ -838,8 +859,48 @@ export default {
     },
     //删除文件
     deleteItem (item) {
-      alert("删除"+item.name);
+      // {
+      //      "token": "eabe00623c924cd6a6267eec187c2c11",
+      //     "directID": "1",
+      //     "fileID": "1"
+      // }
+      alert("删除"+item.id);
       console.log(item);
+      let me = this;
+      //1.处理token
+      let a = sessionStorage.getItem('token');
+      let b =  a.substring(1,a.length-1);
+      //2.取出fileID（item.id）
+      //3.取出directID(breadcrumb_item[breadcrumb_item.lenth-1].id)
+      this.axios.post('/cloud/delete',{
+          token:b,
+          fileID:item.id,
+          directID:this.breadcrumb_items[this.breadcrumb_items.length-1]
+      }).then(function(response){
+          console.log(response.data);
+        me.loading=true;
+        me.axios.post('/cloud/user/userCatalogue',{
+          token:b
+        }).then(function (response) {
+          console.log(response.data.data);
+          if(response.data.data!=null){
+            me.item= response.data.data;
+            me.breadcrumb_items[0].id=response.data.data.directID;
+            //console.log( 'fuck');
+            //console.log( me.item);
+            me.files = me.dataSolver(me.item);
+            me.loading=false;
+            me.clickToUpload=false;
+            me.closeUploadDialog=false;
+            me.uploadProgress=false;
+          }
+          // console.log(response.data.data);
+        }).catch(function (error) {
+          console.log(error);
+        });
+      }).catch(function (error){
+            console.log(error);
+      })
       // const index = this.files.indexOf(item)
       // confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
     },
@@ -1132,15 +1193,15 @@ export default {
     },
     uploadFile(){
       //console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
-      let  reopt = {
-        method:"put",
-        url:"",
-        withCredentials:false,
-        headers:{'content-type': 'multipart/form-data'},
-        maxRedirects:0,
-        responseType:'text',
-        data:null,
-      };
+      // let  reopt = {
+      //   method:"put",
+      //   url:"",
+      //   withCredentials:false,
+      //   headers:{'content-type': 'multipart/form-data'},
+      //   maxRedirects:0,
+      //   responseType:'text',
+      //   data:null,
+      // };
       if(this.uploadFileName===''){
         //alert("请输入文件名");
         this.uploadMessage="请输入文件名！";
@@ -1184,63 +1245,137 @@ export default {
           // console.log(obj);
           //alert(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
           let me=this;
+          this.uploadProgress=true;
+          this.clickToUpload=true;
+          this.closeUploadDialog=true;
           this.axios.post('/cloud/user/getUploadUrl',{
             token:b,
             directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
-            fileName:this.uploadFileName,
+            fileName:this.uploadFileName+"."+type,
             fileSize:size,
             fileType:type
           }).then(function (response) {
             console.log(response.data.data);
             if(response.data.data.uploadUrl!==''){
-              reopt.data= document.getElementById("upload").value;
-              reopt.url=response.data.data.uploadUrl;
-              me.axios.request(reopt).then(function (response) {
-                if(response.status < 300){
-                  console.log('Creating object using temporary signature succeed.');
-                  me.axios.post('/cloud/user/upload',{
-                    token:b,
-                    directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
-                    fileName:me.uploadFileName,
-                    fileSize:size,
-                    fileType:type
-                  }).then(function(response){
-                    console.log(response.data);
-                    if(response.data.status===200){
-                      alert('上传成功');
-                      me.axios.post('/cloud/user/userCatalogue',{
-                        token:b
-                      }).then(function (response) {
-                        console.log(response.data.data);
-                        if(response.data.data!=null){
-                          me.item= response.data.data;
-                          me.breadcrumb_items[0].id=response.data.data.directID;
-                          //console.log( 'fuck');
-                          //console.log( me.item);
-                          me.files = me.dataSolver(me.item);
-                          me.loading=false;
-                        }
-                        // console.log(response.data.data);
-                      }).catch(function (error) {
-                        console.log(error);
-                      });
-                    }
-                  }).catch(function (error){
-                    console.log(error);
-                  });
-                }else{
-                  console.log('Creating object using temporary signature failed!');
-                  console.log('status:' + response.status);
+             // let reader = new FileReader();
+              //let  UrlBase64 = reader.readAsDataURL(document.getElementById("upload").files[0]);
+              // let formData = new window.FormData();
+              // formData.append(me.uploadFileName, document.getElementById("upload").files[0]);
+              // reopt.data= formData;
+             // reopt.data=UrlBase64;
+              let file=document.getElementById("upload").files[0];
+              let reader = new FileReader();
+
+              reader.readAsArrayBuffer(file);
+              reader.onloadend = function() {
+                let content = reader.result;
+                let reopt = {
+                  method : "put",
+                  url : response.data.data.uploadUrl,
+                  withCredentials: false,
+                  headers : {'content-type': 'multipart/form-data'},
+                  maxRedirects : 0,
+                  responseType : 'text',
+                  data : content,
+                };
+                me.axios.request(reopt).then(function (response) {
+                  if(response.status < 300){
+                    console.log('Creating object using temporary signature succeed.');
+                    me.axios.post('/cloud/user/upload',{
+                      token:b,
+                      directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+                      fileName:me.uploadFileName+"."+type,
+                      fileSize:size,
+                      fileType:type
+                    }).then(function(response){
+                      console.log(response.data);
+                      if(response.data.status===200){
+                        alert('上传成功');
+                        me.loading=true;
+                        me.axios.post('/cloud/user/userCatalogue',{
+                          token:b
+                        }).then(function (response) {
+                          console.log(response.data.data);
+                          if(response.data.data!=null){
+                            me.item= response.data.data;
+                            me.breadcrumb_items[0].id=response.data.data.directID;
+                            //console.log( 'fuck');
+                            //console.log( me.item);
+                            me.files = me.dataSolver(me.item);
+                            me.loading=false;
+                            me.clickToUpload=false;
+                            me.closeUploadDialog=false;
+                            me.uploadProgress=false;
+                          }
+                                // console.log(response.data.data);
+                        }).catch(function (error) {
+                          console.log(error);
+                        });
+                      }
+                    }).catch(function (error){
+                      console.log(error);
+                    });
+                  }else{
+                    console.log('Creating object using temporary signature failed!');
+                    console.log('status:' + response.status);
+                    console.log('\n');
+                  }
+                  console.log(response.data);
                   console.log('\n');
-                }
-                console.log(response.data);
-                console.log('\n');
-              }).catch(function (err) {
-                console.log('Creating object using temporary signature failed!');
-                console.log(err);
-                console.log('\n');
-              });
-            }
+                }).catch(function (err) {
+                  console.log('Creating object using temporary signature failed!');
+                  console.log(err);
+                  console.log('\n');
+                });
+              };
+              }
+            //   reopt.url=response.data.data.uploadUrl;
+            //   me.axios.request(reopt).then(function (response) {
+            //     if(response.status < 300){
+            //       console.log('Creating object using temporary signature succeed.');
+            //       me.axios.post('/cloud/user/upload',{
+            //         token:b,
+            //         directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+            //         fileName:me.uploadFileName,
+            //         fileSize:size,
+            //         fileType:type
+            //       }).then(function(response){
+            //         console.log(response.data);
+            //         if(response.data.status===200){
+            //           alert('上传成功');
+            //           me.axios.post('/cloud/user/userCatalogue',{
+            //             token:b
+            //           }).then(function (response) {
+            //             console.log(response.data.data);
+            //             if(response.data.data!=null){
+            //               me.item= response.data.data;
+            //               me.breadcrumb_items[0].id=response.data.data.directID;
+            //               //console.log( 'fuck');
+            //               //console.log( me.item);
+            //               me.files = me.dataSolver(me.item);
+            //               me.loading=false;
+            //             }
+            //             // console.log(response.data.data);
+            //           }).catch(function (error) {
+            //             console.log(error);
+            //           });
+            //         }
+            //       }).catch(function (error){
+            //         console.log(error);
+            //       });
+            //     }else{
+            //       console.log('Creating object using temporary signature failed!');
+            //       console.log('status:' + response.status);
+            //       console.log('\n');
+            //     }
+            //     console.log(response.data);
+            //     console.log('\n');
+            //   }).catch(function (err) {
+            //     console.log('Creating object using temporary signature failed!');
+            //     console.log(err);
+            //     console.log('\n');
+            //   });
+
           }).catch(function (error) {
             console.log(error);
           });
@@ -1311,7 +1446,56 @@ export default {
          if(flag===1){
            alert("存在同名文件夹");
          }else{
-           alert("可以创建");
+           //alert("可以创建");
+           // {
+           //     "token": "eabe00623c924cd6a6267eec187c2c11",
+           //     "parentDirectID": "af0df5590ba54d67afb94468f5d61454",
+           //     "directName": "lzh的秘密"
+           // }
+           let me=this;
+           //1.处理token
+           this.createFolderProgress=true;
+           this.clickToNewFolder=true;
+           this.closeCreateFolder=true;
+           let a = sessionStorage.getItem('token');
+           //let resultArray=[];
+           let b =  a.substring(1,a.length-1);
+           //2.parentDirectID:
+           //me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+           //3.directName:文件夹名称
+           this.axios.post('/cloud/user/newDirectory',{
+             token:b,
+             parentDirectID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+             directName:this.newFolderName
+           }).then(function (response){
+             console.log(response);
+             me.createFolderProgress=false;
+             me.clickToNewFolder=false;
+             me.closeCreateFolder=false;
+             alert('新建文件夹成功');
+             me.loading=true;
+             me.axios.post('/cloud/user/userCatalogue',{
+               token:b
+             }).then(function (response) {
+               console.log(response.data.data);
+               if(response.data.data!=null){
+                 me.item= response.data.data;
+                 me.breadcrumb_items[0].id=response.data.data.directID;
+                 //console.log( 'fuck');
+                 //console.log( me.item);
+                 me.files = me.dataSolver(me.item);
+                 me.loading=false;
+                 // this.createFolderProgress=false;
+                 // this.clickToNewFolder=false;
+                 // this.closeCreateFolder=false;
+               }
+               // console.log(response.data.data);
+             }).catch(function (error) {
+               console.log(error);
+             });
+           }).catch(function (error){
+             console.log(error);
+           })
          }
       }
     },
@@ -1333,6 +1517,10 @@ export default {
     },
     download(){
       //console.log(this.selected);
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      let me = this;
       if(this.selected.length===0){
         alert("请勾选待下载的文件");
       }else{
@@ -1342,6 +1530,22 @@ export default {
 
         }else{
           alert("下载文件"+downloadFile.name);
+          // {
+          //   token:
+          //   directID:       //文件夹ID
+          //   fileID:       //文件ID
+          // }
+          this.axios.post('/cloud/user/download',{
+            token:b,
+            directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+            fileID:downloadFile.id
+          }).then(function (response){
+            console.log(response.data.data.data);
+            window.open(response.data.data.data);
+          }).catch(function (error){
+            console.log(error);
+          });
+          console.log(downloadFile);
         }
       }
 

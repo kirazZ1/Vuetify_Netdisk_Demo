@@ -37,13 +37,6 @@
                     </v-list>
                   </v-menu>
                 </div>
-
-                <div class="ma-1 pa-1" >
-                  <v-btn  @click="Delete()" color="primary">
-                    <v-icon dark  left>{{ button2.icon }}</v-icon>
-                    删除
-                  </v-btn>
-                </div>
                 <div class="ma-1 pa-1" >
                   <v-btn  @click="Forbid()" :disabled="forbiddenButton" color="primary">
                     <v-icon dark left>{{ button3.icon }}</v-icon>
@@ -376,6 +369,50 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+
+        <v-dialog
+            v-model="addMoreUserDialog"
+            persistent max-width="600px"
+        >
+          <v-alert
+              v-model="addMoreAlert"
+              dismissible
+              type="error"
+              border="left"
+              elevation="2"
+              colored-border
+              transition="scale-transition"
+          >
+            {{addMoreMessage}}
+          </v-alert>
+          <v-card>
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>批量导入</v-toolbar-title>
+
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
+            <v-card-text>
+              <v-container>
+
+                <v-file-input  label="上传xls文件" id="addMore" outlined dense></v-file-input>
+
+              </v-container>
+              <small>*请选择带有用户信息的xls文件后点击提交</small>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="addMoreUserDialog = false">关闭</v-btn>
+              <v-btn color="blue darken-1" text @click="addMoreUser()">导入</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <v-card>
           <v-data-table
               dense
@@ -459,6 +496,7 @@ export default {
       backButton:false,
       searchBy:'',
       preSearch:'',
+      addMoreMessage:'',
       SearchBasis:[//查询依据
         '按用户名查询', '按工号查询', '按电话查询'
       ],
@@ -532,6 +570,8 @@ export default {
       userInfoDialog:false,//用户详情对话框
       updateUserDialog:false,//修改用户对话框
       addOneUserDialog:false,
+      addMoreUserDialog:false,
+      addMoreAlert:false,
       sexItems: ['男', '女'],
       //检验规则（组件实时提示）
       workIDRules: [
@@ -668,6 +708,7 @@ export default {
             for(let i=0;i<this.tempInfo.length;i++){
               if(reg.test(this.tempInfo[i].name)){
                 let obj={
+                  userID:this.tempInfo[i].userID,
                   workID:this.tempInfo[i].workID,
                   name:this.tempInfo[i].name,
                   sex:this.tempInfo[i].sex,
@@ -684,6 +725,7 @@ export default {
             for(let i=0;i<this.tempInfo.length;i++){
               if(reg.test(this.tempInfo[i].workID)){
                 let obj={
+                  userID:this.tempInfo[i].userID,
                   workID:this.tempInfo[i].workID,
                   name:this.tempInfo[i].name,
                   sex:this.tempInfo[i].sex,
@@ -700,6 +742,7 @@ export default {
             for(let i=0;i<this.tempInfo.length;i++){
               if(reg.test(this.tempInfo[i].phone)){
                 let obj={
+                  userID:this.tempInfo[i].userID,
                   workID:this.tempInfo[i].workID,
                   name:this.tempInfo[i].name,
                   sex:this.tempInfo[i].sex,
@@ -762,25 +805,103 @@ export default {
         this.addOneUserDialog=true;
         //alert('单次导入');
       }else{
-        alert('批量导入');
+        //alert('批量导入');
+        this.addMoreUserDialog=true;
       }
     },
     importOne(){
       alert('单次导入');
     },
-    Delete(){
-      if(this.selected.length===0){
-        alert('请勾选要删除的用户');
-      }else{
-        alert('删除用户  '+this.selected[0].workID);
-      }
 
-    },
     Forbid(){
       if(this.selected.length===0){
         alert('请勾选要禁用的用户');
       }else{
-        alert('禁用  '+this.selected[0].workID);
+        let me = this;
+        let a = sessionStorage.getItem('token');
+        let resultArray=[];
+        let b =  a.substring(1,a.length-1);
+        this.axios.post('/cloud/user/manage/upStatus',{
+          token:b,
+          userID:this.selected[0].userID
+        }).then(function (response){
+          console.log(response.data);
+          if(response.data.status===200){
+            me.axios.post('/cloud/user/manage/all',{
+              token:b
+            }).then(function (response) {
+              console.log(response.data.data);
+              // userEmail: "5811111123@qq.com"
+              // userGarbage: "ddd79393e4294e4f945677bc5c1af433"
+              // userId: "04dbcd031e304561abfbd7fa46a986fb"
+              // userMobie: "15767195555"
+              // userName: "zhangsan1"
+              // userPassword: "1111111"
+              // userPermission: 3
+              // userRootId: "a6332e748b2749a5bfd2e2dcd87b1987"
+              // userSex: "M"
+              // userSize: 20
+              // userStatus: 1
+              // userTime: "2020-09-25T03:15:22.000+0000"
+              // userUsed: 0
+              // userWorkId: 202000000001
+              // {
+              //   workID:'10010',
+              //       name:'张三',
+              //     sex:'男',
+              //     phone:'123456789',
+              //     email:'1223131231@qq.com',
+              //     createTime:'2020-01-01',
+              //     status:0
+              // },
+              if(response.data.data.length!==0){
+                for(let i=0;i<response.data.data.length;i++){
+                  let obj={
+                    userID:'',
+                    workID:'',
+                    name:'',
+                    sex:'',
+                    phone:'',
+                    email:'',
+                    createTime:'',
+                    status:0
+                  };
+                  obj.userID=response.data.data[i].userId;
+                  obj.workID=response.data.data[i].userWorkId;
+                  obj.name=response.data.data[i].userName;
+                  if(response.data.data[i].userSex==="M"){
+                    obj.sex="男";
+                  }else{
+                    obj.sex="女";
+                  }
+                  obj.phone=response.data.data[i].userMobie;
+                  obj.email=response.data.data[i].userEmail;
+                  //obj.createTime=response.data.data[i].userTime;
+
+                  //以下进行时间格式转换
+                  let d = new Date(response.data.data[i].userTime);
+                  // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
+                  obj.createTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate());
+                  //转换完毕
+                  obj.status=response.data.data[i].userStatus;
+                  resultArray.push(obj);
+                }
+              }
+              me.Info=resultArray;
+              me.tempInfo=resultArray;
+              me.loading=false;
+              // console.log(response.data.data);
+            }).catch(function (error) {
+              console.log(error);
+            });
+            alert("删除成功！");
+
+          }
+        }).catch(function (error){
+          console.log(error);
+        })
+        //alert('禁用  '+this.selected[0].workID);
+        //console.log(this.selected[0]);
       }
     },
     ReleaseForbid(){
@@ -789,6 +910,42 @@ export default {
       }else{
         alert('解除禁用  '+this.selected[0].workID);
       }
+    },
+    addMoreUser(){
+      if(document.querySelector("#addMore").files[0]===undefined){
+        //alert("请选择待上传的文件");
+        this.addMoreAlert="请选择待导入的xls文件！";
+        this.addMoreUserDialog=true;
+      }else{
+        let url = document.querySelector("#addMore").value;
+        let filextension = url.substring(url.lastIndexOf("."), url.length);
+        filextension = filextension.toLowerCase();
+        console.log(filextension);
+        if (filextension != '.xls'){
+          alert("对不起，系统仅支持xls格式的文件。");
+        }else{
+          //alert('可以批量导入');
+          ///cloud/user/manage/uploadfile
+          let formData = new window.FormData();
+          formData.append(this.uploadFileName, document.getElementById("addMore").files[0]);
+          //this.axios.post()
+          let options = {  // 设置axios的参数
+            url: '/cloud/user/manage/uploadfile',
+            data: formData,
+            method: 'post',
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+          this.axios(options).then(function (response){
+            console.log(response);
+          }).catch(function (error){
+            console.log(error);
+          })
+        }
+      }
+
+
     }
   }
 }

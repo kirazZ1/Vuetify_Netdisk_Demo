@@ -659,7 +659,8 @@ export default {
       open: ['public'],
       findFolder:[],
       loading:false,
-      groupListLoading:true
+      groupListLoading:true,
+      departIDNow:null
     }
   },
   beforeMount(){
@@ -692,6 +693,7 @@ export default {
       let a = sessionStorage.getItem('token');
       //let resultArray=[];
       let b =  a.substring(1,a.length-1);
+      this.departIDNow=item.departID;
       this.axios.post('/cloud/user/departmentCatalogue',{
         token:b,
         departID:item.departID
@@ -910,34 +912,6 @@ export default {
 
     },
     folderTreeBuild(item){     //用于文件夹树形结构字符串构造（结果用于输入vuetify组件），移动/复制时候显示形式为树状结构
-      //源字符串来自this.item，即系统接收到的文件列表数据
-      //收到的数据格式
-      // {
-      //   directID:''         //文件夹ID
-      //   name:'四大名著',		//文件夹名称
-      //   size:,			//为了方便，文件夹大小不做计算，如果后台传来更好
-      //   modificationDate:'2020-01-01'	//上传时间
-      //   includeDirects:[]
-      //   includeFiles:[]      //包含文件，此处可忽略
-      // }
-      //需求的数据格式
-      // {
-      //       id: 1,
-      //       name: 'Applications :',
-      //       children: [
-      //        { id: 2, name: 'Calendar : app' },
-      //        { id: 3, name: 'Chrome : app' },
-      //        { id: 4, name: 'Webstorm : app' },
-      //       ],
-      // },
-      //最底层，最小的递归元素：
-      //new obj ={
-      //    id:null,    //文件夹id
-      //    name:null,  //文件夹名称
-      //    children:null   //文件夹下文件夹（底层文件夹为null）includeDirects:[](includeDirects.length===0)
-      // }
-      // obj.id=item[i].directID;
-      // obj.name=item[i].name;
       let resultArray = [];
       for(let i=0;i<item.length;i++){
         if(item[i].type===undefined){//文件夹
@@ -967,19 +941,6 @@ export default {
       return resultArray;
     },
     folderTreeLock(item){
-      // {
-      //       id: 1,
-      //       name: 'Applications :',
-      //       locked:false,
-      //       children: [
-      //        { id: 2, name: 'Calendar : app' },
-      //        { id: 3, name: 'Chrome : app' },
-      //        { id: 4, name: 'Webstorm : app' },
-      //       ],
-      // },
-      //console.log(33333);
-      //console.log(item[0].children.length);
-      //console.log(11111);
       for(let i=0;i<item.length;i++){
         if(item[i].children!==undefined){
           if(item[i].locked===true){
@@ -1022,7 +983,16 @@ export default {
       console.log(this.selected);
     },
     uploadFile(){
-      console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
+      //console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
+      let  reopt = {
+        method:"put",
+        url:"",
+        withCredentials:false,
+        headers:{'content-type': 'multipart/form-data'},
+        maxRedirects:0,
+        responseType:'text',
+        data:null,
+      };
       if(this.uploadFileName===''){
         //alert("请输入文件名");
         this.uploadMessage="请输入文件名！";
@@ -1046,7 +1016,95 @@ export default {
           }
         }
         if(flag===0){
-          alert("可以上传");
+          //let formData = new window.FormData()
+
+          let a = sessionStorage.getItem('token');
+          //let resultArray=[];
+          let b =  a.substring(1,a.length-1);
+          let size =document.querySelector('input[type=file]').files[0].size;
+          size = size / 1024;//kb
+          size = (size / 1024).toFixed(2);
+          //console.log(document.getElementById('upload').value+size);
+
+          // let obj={
+          //     token:b,
+          //     directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+          //     fileName:this.uploadFileName,
+          //     fileSize:size,
+          //     fileType:type
+          //   };
+          // console.log(obj);
+          //alert(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
+          let me=this;
+          this.axios.post('/cloud/user/getUploadUrl',{
+            token:b,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+            fileName:this.uploadFileName,
+            fileSize:size,
+            fileType:type
+          }).then(function (response) {
+            console.log(response.data.data);
+            if(response.data.data.uploadUrl!==''){
+              reopt.data= document.getElementById("upload").value;
+              reopt.url=response.data.data.uploadUrl;
+              me.axios.request(reopt).then(function (response) {
+                if(response.status < 300){
+                  console.log('Creating object using temporary signature succeed.');
+                  me.axios.post('/cloud/user/upload',{
+                    token:b,
+                    directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+                    fileName:me.uploadFileName,
+                    fileSize:size,
+                    fileType:type
+                  }).then(function(response){
+                    console.log(response.data);
+                    if(response.data.status===200){
+                      alert('上传成功');
+                      me.axios.post('/cloud/user/departmentCatalogue',{
+                        token:b,
+                        departID:me.departIDNow
+                      }).then(function (response) {
+                        console.log(response.data.data);
+                        me.item=response.data.data;
+                        me.files=me.dataSolver(response.data.data);
+                        console.log(me.files);
+                        me.loading=false;
+                        //me.listItems=response.data.data;
+                      }).catch(function (error) {
+                        console.log(error);
+                      });
+                    }
+                  }).catch(function (error){
+                    console.log(error);
+                  });
+                }else{
+                  console.log('Creating object using temporary signature failed!');
+                  console.log('status:' + response.status);
+                  console.log('\n');
+                }
+                console.log(response.data);
+                console.log('\n');
+              }).catch(function (err) {
+                console.log('Creating object using temporary signature failed!');
+                console.log(err);
+                console.log('\n');
+              });
+            }
+          }).catch(function (error) {
+            console.log(error);
+          });
+
+
+          //         ｛
+          //
+          //            token：
+          //            directID:       //文件夹ID
+          //            fileName:'test.txt'	//文件名
+          //            fileSize:'3.3MB'		//文件大小 如 3.3MB
+          //            fileType:'txt'		//文件类型 如 txt
+          //          ｝
+          //
+          //formData.append(this.uploadFileName, document.querySelector('input[type=file]').files[0]);
           //在这里发送请求给后端接口
           //上传的内容用formData封装（父文件夹id，文件名和文件）
           //父文件夹id获取
