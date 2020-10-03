@@ -91,6 +91,14 @@
 
                 </v-tooltip>
               </v-toolbar>
+              <v-progress-linear
+                  :active="uploadProgress"
+
+                  indeterminate
+                  absolute
+                  bottom
+                  color="deep-purple accent-4"
+              ></v-progress-linear>
               <v-card-text>
                 <v-container>
                   <v-text-field
@@ -106,23 +114,12 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="uploadDialog = false">关闭</v-btn>
-                <v-btn color="blue darken-1" text @click="uploadFile()">上传</v-btn>
+                <v-btn :disabled="closeUploadDialog" color="blue darken-1" text  @click="uploadDialog = false">关闭</v-btn>
+                <v-btn :disabled="clickToUpload" color="blue darken-1" text @click="uploadFile()">上传</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
-          <!--        <v-alert-->
-          <!--            v-model="uploadAlert"-->
-          <!--            dismissible-->
-          <!--            type="error"-->
-          <!--            border="left"-->
-          <!--            elevation="2"-->
-          <!--            colored-border-->
-          <!--            transition="scale-transition"-->
-          <!--        >-->
-          <!--          {{uploadMessage}}-->
-          <!--        </v-alert>-->
-          <!--        新建文件夹对话框-->
+
           <v-dialog
               v-model="newFolderDialog"
               persistent max-width="600px"
@@ -141,6 +138,13 @@
 
                 </v-tooltip>
               </v-toolbar>
+              <v-progress-linear
+                  :active="createFolderProgress"
+                  indeterminate
+                  absolute
+                  bottom
+                  color="deep-purple accent-4"
+              ></v-progress-linear>
               <v-card-text>
                 <v-container>
                   <v-text-field
@@ -156,8 +160,8 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="blue darken-1" text @click="newFolderDialog = false">关闭</v-btn>
-                <v-btn color="blue darken-1" text @click="newFolder()">创建</v-btn>
+                <v-btn :disabled="closeCreateFolder" color="blue darken-1" text @click="newFolderDialog = false">关闭</v-btn>
+                <v-btn :disabled="clickToNewFolder" color="blue darken-1" text @click="newFolder()">创建</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -541,8 +545,17 @@
   </div>
 </template>
 <script>
-import {mdiCloudDownload, mdiCloudUpload, mdiRefresh} from "@mdi/js";
-
+import {mdiCloudDownload, mdiCloudUpload, mdiRefresh,mdiZipBox,mdiFilePowerpoint,mdiFileVideo,mdiFileMusic} from "@mdi/js";
+// zip:mdiZipBox,
+//     rar:mdiZipBox,
+//     '7z':mdiZipBox,
+//     ppt:mdiFilePowerpoint,
+//     pptx:mdiFilePowerpoint,
+//     mp4:mdiFileVideo,
+//     avi:mdiFileVideo,
+//     mp3:mdiFileMusic,
+//     m4a:mdiFileMusic,
+//     flac:mdiFileMusic,
 export default {
 // {
 //      "departID": "edae11e9bd554462b3d432ccfd60a52c",
@@ -620,10 +633,22 @@ export default {
         md: 'mdi-markdown',
         pdf: 'mdi-file-pdf',
         png: 'mdi-file-image',
+        jpeg: 'mdi-file-image',
         jpg: 'mdi-file-image',
         txt: 'mdi-file-document-outline',
         xls: 'mdi-file-excel',
-        docx:'mdi-file-word'
+        doc:'mdi-file-word',
+        docx:'mdi-file-word',
+        zip:mdiZipBox,
+        rar:mdiZipBox,
+        '7z':mdiZipBox,
+        ppt:mdiFilePowerpoint,
+        pptx:mdiFilePowerpoint,
+        mp4:mdiFileVideo,
+        avi:mdiFileVideo,
+        mp3:mdiFileMusic,
+        m4a:mdiFileMusic,
+        flac:mdiFileMusic,
 
       },
       item:{
@@ -660,7 +685,13 @@ export default {
       findFolder:[],
       loading:false,
       groupListLoading:true,
-      departIDNow:null
+      departIDNow:null,
+      uploadProgress:false,
+      closeUploadDialog:false,
+      clickToUpload:false,
+      createFolderProgress:false,
+      clickToNewFolder:false,
+      closeCreateFolder:false
     }
   },
   beforeMount(){
@@ -700,6 +731,7 @@ export default {
       }).then(function (response) {
         console.log(response.data.data);
         me.item=response.data.data;
+        me.breadcrumb_items[0].id=response.data.data.directID;
         me.files=me.dataSolver(response.data.data);
         console.log(me.files);
         me.loading=false;
@@ -716,7 +748,6 @@ export default {
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
-
     //查找文件
     SearchFile(){
       //let name =this.preSearch;
@@ -763,23 +794,36 @@ export default {
     },
     //刷新文件列表
     Refresh(){
-
-      //alert("111");
-      // Bus.$emit('refresh_myFile', '重新加载视图部分组件');
-      //后来想了一下可能没必要，直接向后台发请求要新的数据就好了
-      //新:刷新列表
-      //过程分析：
-      //1.向后台重发请求更新item
-      //2.根据当前面包屑来找到文件夹
-      //已经有的json处理方法：dataSolver(item)，用于把传回的格式转化成为列表可接受的json
-      //可以复用的代码breadcrumb(item)中步骤2（可进行封装）
+      let me = this;
+      me.loading=true;
+      // this.files = this.dataSolver(this.item);
+      //this.files = this.dataSolver(this.item);
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      while(me.breadcrumbNum!=1){
+        me.breadcrumb_items.pop();
+        me.breadcrumbNum--;
+      }
+      me.breadcrumb_items[0].disabled=true;
+      this.axios.post('/cloud/user/departmentCatalogue',{
+        token:b,
+        departID:this.departIDNow
+      }).then(function (response) {
+        console.log(response.data.data);
+        me.item=response.data.data;
+        me.breadcrumb_items[0].id=response.data.data.directID;
+        me.files=me.dataSolver(response.data.data);
+        console.log(me.files);
+        me.loading=false;
+        //me.listItems=response.data.data;
+      }).catch(function (error) {
+        console.log(error);
+      });
+      this.showGroupFile=true;
+      this.groupList=false;
     },
     clickFile(item){//点击文件触发的事件
-      //根据type字段来识别是否为文件夹
-
-      //需要考虑的情况：通过搜索访问文件夹
-      //搜索了文件夹，但是文件层级又不清楚
-      //写的代码必须是在所有场景都可使用的
       if(item.type===null){    //文件夹
 
         for(let i=0;i<this.breadcrumbNum;i++){
@@ -891,8 +935,7 @@ export default {
       }
     },
     parseTreeJson(item){//对json树进行遍历获取根节点（递归实现）item-传入的json字符串数组(后台发来的，未经过处理的json字符串，需要用数组包装后调用)
-      //可以知道，所有文件都是根节点，文件夹和文件的区别在于type字段是否为空
-      //let resultArray = [];
+
 
       for(let index = 0;index<item.length;index++){
         const element =item[index];         //逐级访问
@@ -983,16 +1026,6 @@ export default {
       console.log(this.selected);
     },
     uploadFile(){
-      //console.log(document.querySelector("#upload").files[0]);//----无文件时为undefined
-      // let  reopt = {
-      //   method:"put",
-      //   url:"",
-      //   withCredentials:false,
-      //   headers:{'content-type': 'multipart/form-data'},
-      //   maxRedirects:0,
-      //   responseType:'text',
-      //   data:null,
-      // };
       if(this.uploadFileName===''){
         //alert("请输入文件名");
         this.uploadMessage="请输入文件名！";
@@ -1016,25 +1049,12 @@ export default {
           }
         }
         if(flag===0){
-          //let formData = new window.FormData()
-
           let a = sessionStorage.getItem('token');
           //let resultArray=[];
           let b =  a.substring(1,a.length-1);
           let size =document.querySelector('input[type=file]').files[0].size;
           size = size / 1024;//kb
           size = (size / 1024).toFixed(2);
-          //console.log(document.getElementById('upload').value+size);
-
-          // let obj={
-          //     token:b,
-          //     directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
-          //     fileName:this.uploadFileName,
-          //     fileSize:size,
-          //     fileType:type
-          //   };
-          // console.log(obj);
-          //alert(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
           let me=this;
           this.uploadProgress=true;
           this.clickToUpload=true;
@@ -1048,12 +1068,6 @@ export default {
           }).then(function (response) {
             console.log(response.data.data);
             if(response.data.data.uploadUrl!==''){
-              // let reader = new FileReader();
-              //let  UrlBase64 = reader.readAsDataURL(document.getElementById("upload").files[0]);
-              // let formData = new window.FormData();
-              // formData.append(me.uploadFileName, document.getElementById("upload").files[0]);
-              // reopt.data= formData;
-              // reopt.data=UrlBase64;
               let file=document.getElementById("upload").files[0];
               let reader = new FileReader();
 
@@ -1072,25 +1086,46 @@ export default {
                 me.axios.request(reopt).then(function (response) {
                   if(response.status < 300){
                     console.log('Creating object using temporary signature succeed.');
-
-                    me.loading=true;
-                    // this.files = this.dataSolver(this.item);
-                    //this.files = this.dataSolver(this.item);
-                    let a = sessionStorage.getItem('token');
-                    //let resultArray=[];
-                    let b =  a.substring(1,a.length-1);
-                    //this.departIDNow=item.departID;
-                    me.axios.post('/cloud/user/departmentCatalogue',{
+                    me.axios.post('/cloud/user/upload',{
                       token:b,
-                      departID:me.departIDNow
-                    }).then(function (response) {
-                      console.log(response.data.data);
-                      me.item=response.data.data;
-                      me.files=me.dataSolver(response.data.data);
-                      console.log(me.files);
-                      me.loading=false;
-                      //me.listItems=response.data.data;
-                    }).catch(function (error) {
+                      directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+                      fileName:me.uploadFileName+"."+type,
+                      fileSize:size,
+                      fileType:type
+                    }).then(function(response){
+                      console.log(response.data);
+                      if(response.data.status===200){
+                        alert('上传成功');
+                        me.loading=true;
+                        me.uploadProgress=false;
+                        me.clickToUpload=false;
+                        me.closeUploadDialog=false;
+                        me.uploadDialog=false;
+                        while(me.breadcrumbNum!=1){
+                          me.breadcrumb_items.pop();
+                          me.breadcrumbNum--;
+                        }
+                        me.breadcrumb_items[0].disabled=true;
+                        me.axios.post('/cloud/user/departmentCatalogue',{
+                          token:b,
+                          departID:me.departIDNow
+                        }).then(function (response) {
+                          console.log(response.data);
+                          while(me.breadcrumbNum!=1){
+                            me.breadcrumb_items.pop();
+                            me.breadcrumbNum--;
+                          }
+                          me.breadcrumb_items[0].disabled=true;
+                          me.item=response.data.data;
+                          me.files=me.dataSolver(response.data.data);
+                          console.log(me.files);
+                          me.loading=false;
+                          //me.listItems=response.data.data;
+                        }).catch(function (error) {
+                          console.log(error);
+                        });
+                      }
+                    }).catch(function (error){
                       console.log(error);
                     });
                   }else{
@@ -1107,89 +1142,15 @@ export default {
                 });
               };
             }
-            //   reopt.url=response.data.data.uploadUrl;
-            //   me.axios.request(reopt).then(function (response) {
-            //     if(response.status < 300){
-            //       console.log('Creating object using temporary signature succeed.');
-            //       me.axios.post('/cloud/user/upload',{
-            //         token:b,
-            //         directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
-            //         fileName:me.uploadFileName,
-            //         fileSize:size,
-            //         fileType:type
-            //       }).then(function(response){
-            //         console.log(response.data);
-            //         if(response.data.status===200){
-            //           alert('上传成功');
-            //           me.axios.post('/cloud/user/userCatalogue',{
-            //             token:b
-            //           }).then(function (response) {
-            //             console.log(response.data.data);
-            //             if(response.data.data!=null){
-            //               me.item= response.data.data;
-            //               me.breadcrumb_items[0].id=response.data.data.directID;
-            //               //console.log( 'fuck');
-            //               //console.log( me.item);
-            //               me.files = me.dataSolver(me.item);
-            //               me.loading=false;
-            //             }
-            //             // console.log(response.data.data);
-            //           }).catch(function (error) {
-            //             console.log(error);
-            //           });
-            //         }
-            //       }).catch(function (error){
-            //         console.log(error);
-            //       });
-            //     }else{
-            //       console.log('Creating object using temporary signature failed!');
-            //       console.log('status:' + response.status);
-            //       console.log('\n');
-            //     }
-            //     console.log(response.data);
-            //     console.log('\n');
-            //   }).catch(function (err) {
-            //     console.log('Creating object using temporary signature failed!');
-            //     console.log(err);
-            //     console.log('\n');
-            //   });
 
           }).catch(function (error) {
             console.log(error);
           });
-
-
-          //         ｛
-          //
-          //            token：
-          //            directID:       //文件夹ID
-          //            fileName:'test.txt'	//文件名
-          //            fileSize:'3.3MB'		//文件大小 如 3.3MB
-          //            fileType:'txt'		//文件类型 如 txt
-          //          ｝
-          //
-          //formData.append(this.uploadFileName, document.querySelector('input[type=file]').files[0]);
-          //在这里发送请求给后端接口
-          //上传的内容用formData封装（父文件夹id，文件名和文件）
-          //父文件夹id获取
-          // let folderID = this.breadcrumb_items[this.breadcrumbNum-1].id
-          // if(folderID===""){
-          //     folderID = this.item.directID;
-          // }
-          // let a = document.querySelector("#upload").files[0];//用console.log进行测试，成功取到文件
-          // let formData = new window.FormData() // vue 中使用 window.FormData(),否则会报 'FormData isn't definded'
-          // formData.append('userFile', a);
-          // console.log(formData);//输出结果
         }else{
           //alert("有同名文件");
           this.uploadMessage="文件夹中存在同名文件，请重新命名！";
           this.uploadAlert=true;
         }
-        // let strArray = fileName.split(".");
-        // let fileType = strArray.pop();
-        // console.log(fileType);
-        //alert("可以上传");
-
       }
     },
     moreOptionIcon(item){
@@ -1224,7 +1185,40 @@ export default {
         if(flag===1){
           alert("存在同名文件夹");
         }else{
-          alert("可以创建");
+          //alert("可以创建");
+          let me=this;
+          //1.处理token
+          this.createFolderProgress=true;
+          this.clickToNewFolder=true;
+          this.closeCreateFolder=true;
+          let a = sessionStorage.getItem('token');
+          //let resultArray=[];
+          let b =  a.substring(1,a.length-1);
+          //2.parentDirectID:
+          //me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+          //3.directName:文件夹名称
+          this.axios.post('/cloud/user/newDirectory',{
+            token:b,
+            parentDirectID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+            directName:this.newFolderName
+          }).then(function (response){
+            console.log(response);
+            me.createFolderProgress=false;
+            me.clickToNewFolder=false;
+            me.closeCreateFolder=false;
+            alert('新建文件夹成功');
+            me.Refresh();
+            me.newFolderDialog=false;
+
+
+
+
+
+
+          }).catch(function (error){
+            console.log(error);
+          })
+
         }
       }
     },
@@ -1246,6 +1240,10 @@ export default {
     },
     download(){
       //console.log(this.selected);
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      let me = this;
       if(this.selected.length===0){
         alert("请勾选待下载的文件");
       }else{
@@ -1254,7 +1252,18 @@ export default {
           alert("暂不支持下载文件夹！");
 
         }else{
-          alert("下载文件"+downloadFile.name);
+          // alert("下载文件"+downloadFile.name);
+          this.axios.post('/cloud/user/download',{
+            token:b,
+            directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
+            fileID:downloadFile.id
+          }).then(function (response){
+            console.log(response.data.data.data);
+            window.open(response.data.data.data);
+          }).catch(function (error){
+            console.log(error);
+          });
+          console.log(downloadFile);
         }
       }
 

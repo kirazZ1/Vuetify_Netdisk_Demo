@@ -76,8 +76,20 @@
 
             我分享的
           </v-expansion-panel-header>
+          <v-expansion-panel-content v-if="this.toSharesListItems.length===0">
+            <v-card>
+              <v-card-title class="headline" >
 
-          <v-expansion-panel-content  v-for="(item, i) in toSharesListItems"  :key="i">
+                <!--                v-text="item.fileName===null?item.directName:item.fileName"-->
+                <span>暂无分享信息</span>
+              </v-card-title>
+
+
+
+
+            </v-card>
+          </v-expansion-panel-content>
+          <v-expansion-panel-content v-else v-for="(item, i) in toSharesListItems"  :key="i">
             <v-card
                 :color="item.fileName==null?'light-blue darken-4':'blue darken-1'"
                 dark
@@ -153,6 +165,7 @@ export default {
     }).then(function (response) {
       console.log(response.data.data);
       me.toSharesListItems=response.data.data.toShares;
+     // console.log(me.toSharesListItems);
       // me.listItems=response.data.data;
       // me.groupListLoading=false;
     }).catch(function (error) {

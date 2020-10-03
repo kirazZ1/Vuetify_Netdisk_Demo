@@ -414,7 +414,7 @@ export default {
       }else{
         //把手机号和新密码发后端进行密码修改
         //let me = this;
-        this.axios.post('/forgetPassword/updatePass', {
+        this.axios.post('/cloud/forgetPassword/updatePass', {
           userPhone:this.userPhone,
           userPassword:this.password1
         }).then(function (response) {

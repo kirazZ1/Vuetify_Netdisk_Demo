@@ -120,14 +120,14 @@ export default {
           title: '文档管理员管理', icon: mdiBadgeAccount , route:'fileManagerManage'
         };
         let obj3  = {
-          title: '部门文档管理', icon: mdiFileDocumentMultiple , route:'manageGroupFile'
+          title: '部门管理', icon: mdiFileDocumentMultiple , route:'manageGroupFile'
         };
         this.items.push(obj1);
         this.items.push(obj2);
         this.items.push(obj3);
       }else if(this.permission==2){
         let obj4  = {
-          title: '部门文档管理', icon: mdiFileDocumentMultiple , route:'manageGroupFile'
+          title: '部门管理', icon: mdiFileDocumentMultiple , route:'manageGroupFile'
         };
         this.items.push(obj4);
       }

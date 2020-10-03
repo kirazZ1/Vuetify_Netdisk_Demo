@@ -28,11 +28,9 @@
               <div class="ma-1 pa-1">
                      <v-btn v-show="newFolderButton"  @click="newFolderDialog=true" color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
               </div>
-
-
             </v-row>
           </v-col>
-<!--上传文件对话框-->
+        <!--上传文件对话框-->
         <v-dialog
             v-model="uploadDialog"
             persistent max-width="600px"
@@ -89,18 +87,7 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-<!--        <v-alert-->
-<!--            v-model="uploadAlert"-->
-<!--            dismissible-->
-<!--            type="error"-->
-<!--            border="left"-->
-<!--            elevation="2"-->
-<!--            colored-border-->
-<!--            transition="scale-transition"-->
-<!--        >-->
-<!--          {{uploadMessage}}-->
-<!--        </v-alert>-->
-<!--        新建文件夹对话框-->
+        <!--新建文件夹对话框-->
         <v-dialog
             v-model="newFolderDialog"
             persistent max-width="600px"
@@ -146,7 +133,7 @@
           </v-card-actions>
         </v-card>
         </v-dialog>
-<!--        显示文件信息对话框-->
+        <!--显示文件信息对话框-->
         <v-dialog
             v-model="infoDialog"
             max-width="600px"
@@ -198,7 +185,7 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-<!--        重命名文件/文件夹对话框-->
+        <!--重命名文件/文件夹对话框-->
         <v-dialog
             v-model="renameDialog"
             persistent max-width="600px"
@@ -303,7 +290,7 @@
                       </v-icon>
                     </template>
                     <template v-slot:append="{ item }">
-                      <v-btn text color="primary" @click="moveFile(item)" v-show="!item.locked">选择</v-btn>
+                      <v-btn text color="primary" @click="moveFile(item)" v-show="!item.locked" :disabled="chooseFolder">选择</v-btn>
                     </template>
                   </v-treeview>
                 </v-card>
@@ -318,7 +305,6 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-
         <!--复制文件/文件夹对话框-->
         <v-dialog
             v-model="copyDialog"
@@ -363,7 +349,7 @@
                       </v-icon>
                     </template>
                     <template v-slot:append="{ item }">
-                      <v-btn text color="primary" @click="moveFile(item)" >选择</v-btn>
+                      <v-btn text color="primary" @click="copyFile(item)" :disabled="chooseFolder">选择</v-btn>
                     </template>
                   </v-treeview>
                 </v-card>
@@ -378,8 +364,64 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <!--私密分享对话框-->
+        <v-dialog
+            v-model="privateShareDialog"
+            persistent max-width="600px"
+        >
+          <v-card>
+          <v-toolbar
+              color="light-blue darken-4"
+              dark
+              flat
+          >
+            <v-toolbar-title>私密分享</v-toolbar-title>
 
+            <v-spacer></v-spacer>
+            <v-tooltip bottom>
 
+            </v-tooltip>
+          </v-toolbar>
+            <v-card-text>
+              <v-container>
+                <v-select
+                    v-model="shareToValue"
+                    item-text="name"
+                    item-value="id"
+                    :items="shareToWho"
+                    return-object
+                    label="分享给"
+                    multiple
+                    chips
+                    hint="请选择要进行私密分享的用户"
+                    persistent-hint
+                >
+                  <template v-slot:prepend-item>
+                    <v-list-item
+                        ripple
+                      @click="toggle()"
+                    >
+                      <v-list-item-action>
+                        <v-icon :color="shareToWho.length > 0 ? 'indigo darken-4' : ''">{{ icon }}</v-icon>
+                      </v-list-item-action>
+                      <v-list-item-content>
+                        <v-list-item-title>全选</v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                    <v-divider class="mt-2"></v-divider>
+                  </template>
+
+                </v-select>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="privateShareDialog = false">关闭</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!--搜索框-->
         <v-col
             md="2"
             offset-md="3"
@@ -410,9 +452,8 @@
         </v-col>
       </v-row>
       </v-card>
-
+      <!--面包屑-->
       <v-row>
-
           <v-breadcrumbs :items="breadcrumb_items" v-show="showBreadcrumb">
             <template v-slot:item="{ item }">
               <v-breadcrumbs-item
@@ -460,25 +501,58 @@
 <!--          <v-btn text @click="clickFile(item)">-->
             <span @click="clickFile(item)">                {{ item.name }}</span>
 <!--          </v-btn>-->
-
         </template>
-
         <!--操作按钮-->
         <template v-slot:item.action="{ item }">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-          <v-icon
-              medium
-              v-bind="attrs"
-              v-on="on"
-              @click="shareItem(item)"
-          >
-            mdi-share
-          </v-icon>
-            </template>
-            <span>分享文件</span>
-          </v-tooltip>
+<!--          <v-tooltip bottom>-->
+<!--            <template v-slot:activator="{ on, attrs }">-->
+<!--          <v-icon-->
+<!--              medium-->
+<!--              v-bind="attrs"-->
+<!--              v-on="on"-->
+<!--              @click="shareItem(item)"-->
+<!--          >-->
+<!--            mdi-share-->
+<!--          </v-icon>-->
+<!--            </template>-->
+<!--            <span>分享文件</span>-->
+<!--          </v-tooltip>-->
 
+
+          <v-menu  transition="scale-transition">
+            <template v-slot:activator="{ on: menu, attrs }">
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on: tooltip }">
+                  <v-icon
+                      medium
+                      v-bind="attrs"
+                      v-on="{ ...tooltip, ...menu }"
+                      @click="shareButton(item)"
+                  >
+                    mdi-share
+                  </v-icon>
+                </template>
+                <span>分享</span>
+              </v-tooltip>
+            </template>
+
+            <v-list>
+              <v-list-item
+                  v-for="(item, index) in ShareItems"
+                  :key="index"
+                  @click="share(item)"
+              >
+                <v-list-item-title>{{ item.title }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
+
+
+
+
+
+          <!--删除文件/文件夹按钮-->
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
               <v-icon
@@ -492,6 +566,7 @@
             </template>
             <span>删除文件</span>
           </v-tooltip>
+          <!--更多按钮-->
           <v-menu  transition="scale-transition">
             <template v-slot:activator="{ on: menu, attrs }">
               <v-tooltip bottom>
@@ -608,6 +683,10 @@ export default {
         { title: '复制到' },
         { title: '重命名' }
       ],
+      ShareItems:[
+        { title: '私密分享' },
+        { title: '外链分享' },
+      ],
       filesIcon: {
         //文件类型对应图标
         html: 'mdi-language-html5',
@@ -648,117 +727,6 @@ export default {
         includeDirects:[],
         includeFiles:[]
       },
-      // item:{//后台返回给前台的文件数据
-      //     directID:'10000',        //文件夹ID
-      //     name:'四大名著',		//文件夹名称
-      //     size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-      //     modificationDate:'2020-01-01',	//上传时间
-      //     includeDirects:[
-      //       {
-      //         directID:'20001',        //文件夹ID
-      //         name:'阅读笔记',		//文件夹名称
-      //         size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-      //         modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-      //         includeDirects:[],
-      //         includeFiles:[	//嵌套文件
-      //           {
-      //             fileID:'10008',						//文件ID 用于后续操作
-      //             type:'pdf',						//文件类型
-      //             name:'观水浒传有感',		 			//文件名
-      //             size:'10M',						//文件大小
-      //             modificationDate:'2020-01-01'	//更新时间
-      //           },
-      //           {
-      //             fileID:'10007',						//文件ID 用于后续操作
-      //             type:'pdf',						//文件类型
-      //             name:'观红楼梦有感',		 			//文件名
-      //             size:'10M',						//文件大小
-      //             modificationDate:'2020-01-01'	//更新时间
-      //           }
-      //         ]
-      //       },
-      //       {
-      //         directID:'20002',        //文件夹ID
-      //         name:'阅读笔记2',		//文件夹名称
-      //         size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-      //         modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-      //         includeDirects:[
-      //           {
-      //             directID:'20003',        //文件夹ID
-      //             name:'阅读笔记',		//文件夹名称
-      //             size:null,			//为了方便，文件夹大小不做计算，如果后台传来更好
-      //             modificationDate:null,	//更新时间感觉文件夹也没啥必要，如果后台传实际值也能显示
-      //             includeDirects:[],
-      //             includeFiles:[	//嵌套文件
-      //               {
-      //                 fileID:'10009',						//文件ID 用于后续操作
-      //                 type:'pdf',						//文件类型
-      //                 name:'观水浒传有感',		 			//文件名
-      //                 size:'10M',						//文件大小
-      //                 modificationDate:'2020-01-01'	//更新时间
-      //               },
-      //               {
-      //                 fileID:'10010',						//文件ID 用于后续操作
-      //                 type:'pdf',						//文件类型
-      //                 name:'观红楼梦有感',		 			//文件名
-      //                 size:'10M',						//文件大小
-      //                 modificationDate:'2020-01-01'	//更新时间
-      //               }
-      //             ]
-      //           }
-      //         ],
-      //         includeFiles:[	//嵌套文件
-      //           {
-      //             fileID:'10005',						//文件ID 用于后续操作
-      //             type:'pdf',						//文件类型
-      //             name:'观水浒传有感',		 			//文件名
-      //             size:'10M',						//文件大小
-      //             modificationDate:'2020-01-01'	//更新时间
-      //           },
-      //           {
-      //             fileID:'10006',						//文件ID 用于后续操作
-      //             type:'pdf',						//文件类型
-      //             name:'观红楼梦有感',		 			//文件名
-      //             size:'10M',						//文件大小
-      //             modificationDate:'2020-01-01'	//更新时间
-      //           }
-      //         ]
-      //       }
-      //     ],
-      //     includeFiles:[				//文件夹内的内容，文件夹内可以嵌套文件夹
-      //       {
-      //         fileID:"10001",						//文件ID 用于后续操作
-      //         type:'pdf',						//文件类型
-      //         name:'西游记',		 			//文件名
-      //         size:'10M',						//文件大小
-      //         modificationDate:'2020-01-01'	//更新时间
-      //       },
-      //       {
-      //         fileID:"10002",						//文件ID 用于后续操作
-      //         type:'pdf',						//文件类型
-      //         name:'红楼梦',		 			//文件名
-      //         size:'10M',						//文件大小
-      //         modificationDate:'2020-01-01'	//更新时间
-      //       },
-      //       {
-      //         fileID:"10003",						//文件ID 用于后续操作
-      //         type:'pdf',						//文件类型
-      //         name:'三国演义',		 			//文件名
-      //         size:'10M',						//文件大小
-      //         modificationDate:'2020-01-01'	//更新时间
-      //       },
-      //       {
-      //         fileID:"10004",						//文件ID 用于后续操作
-      //         type:'pdf',						//文件类型
-      //         name:'水浒传',		 			//文件名
-      //         size:'10M',						//文件大小
-      //         modificationDate:'2020-01-01'	//更新时间
-      //       },
-      //
-      //     ],
-      //
-      //   },
-      //uploadFile:null,
       formData:null,
       uploadMessage:'',
       renameMessage:'',
@@ -777,22 +745,46 @@ export default {
       },
       infoDialog:false,
       newFolderDialog:false,
+      privateShareDialog:false,
       newFolderName:'',
       optionItem:null,
       folderTree:null,
       open: ['public'],
       findFolder:[],
+      shareToValue:[],
       loading:false,
       uploadProgress:false,
       createFolderProgress:false,
       closeUploadDialog:false,
       clickToUpload:false,
       closeCreateFolder:false,
-      clickToNewFolder:false
+      clickToNewFolder:false,
+      chooseFolder:false,
+      shareToWho: [
+        {id:'10001',name:'张三'},
+        {id:'10002',name:'李四'},
+        {id:'10003',name:'王五'},
+        {id:'10004',name:'刘德华'},
+        {id:'10005',name:'古天乐'},
+        {id:'10006',name:'周杰伦'},
+        {id:'10007',name:'张家辉'},
+      ],
     }
   },
-  created() {
+  computed:{
+    icon(){
+      if(this.shareToValue.length===this.shareToWho.length){//全选
+       // console.log('全选');
+        return 'mdi-close-box';
+      }else if(this.shareToValue.length>0&&this.shareToValue<this.shareToWho){//多选但不是全选
+       // console.log('多选');
+        return 'mdi-minus-box';
+      }else{
+       // console.log('不选');
+        return 'mdi-checkbox-blank-outline';
+      }
 
+    }
 
   },
   beforeMount() {
@@ -831,6 +823,18 @@ export default {
 
   methods:{
     //编辑每页显示几条数据
+    toggle () {
+      this.$nextTick(() => {
+        //console.log(this.shareToValue.length);
+        //console.log(this.shareToWho.length);
+        if (this.shareToValue.length===this.shareToWho.length) {//全选点击清空
+
+          this.shareToValue = [];
+        } else {//非全选点击
+          this.shareToValue = this.shareToWho;
+        }
+      })
+    },
     editItem (item) {
       this.editedIndex = this.files.indexOf(item)
       this.editedItem = Object.assign({}, item)
@@ -1368,11 +1372,11 @@ export default {
                   headers : {'content-type': 'multipart/form-data'},
                   maxRedirects : 0,
                   responseType : 'text',
-                  data : content,
-                };
-                me.axios.request(reopt).then(function (response) {
-                  if(response.status < 300){
-                    console.log('Creating object using temporary signature succeed.');
+                    data : content,
+                  };
+                  me.axios.request(reopt).then(function (response) {
+                    if(response.status < 300){
+                      console.log('Creating object using temporary signature succeed.');
                     me.axios.post('/cloud/user/upload',{
                       token:b,
                       directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
@@ -1630,6 +1634,9 @@ export default {
       this.findFolder=[];
       a.push(this.item);
       this.findFolderMethod(item.id,a);
+      let token = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  token.substring(1,token.length-1);
       //console.log(this.findFolder);
      // console.log(item);
       //过程2实现如下:
@@ -1658,7 +1665,49 @@ export default {
       if(flag === 1){
           alert("存在同名文件/文件夹！");
       }else{
-          alert("移动成功!");
+        this.chooseFolder=true;
+        if(this.optionItem.type!==null){
+          let me = this;
+
+            this.axios.post('/cloud/user/movefile',{
+              token:b,
+              newDirectID:item.id,
+              fileID:this.optionItem.id
+            }).then(function (response){
+              console.log(response);
+              if(response.data.status===200){
+                alert("移动成功！");
+                me.Refresh();
+                me.moveDialog=false;
+              }
+            }).catch(function (error){
+              console.log(error);
+            })
+          console.log(this.optionItem.type);
+        }else{
+          //alert("移动文件夹!");
+          // {
+          //   "token":"c88f4abaa675463787f2b3d2cc91d891",
+          //     "newDirectID":"05dc4ebf6fa44c709485ccb881eb3a6e",
+          //     "directID":"1"
+          // }
+          let me = this;
+          this.axios.post('/cloud/user/movedirectfile',{
+            token:b,
+            newDirectID:item.id,
+            directID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("移动成功！");
+              me.Refresh();
+              this.chooseFolder=false;
+              me.moveDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+        }
       }
 
     },
@@ -1749,7 +1798,6 @@ export default {
               console.log(error);
             })
 
-
           }
         }else{//文件重命名
           let flag = 0;
@@ -1813,6 +1861,92 @@ export default {
               console.log(error);
             })
           }
+        }
+      }
+    },
+    shareButton(item){
+      console.log(item);
+    },
+    share(item){
+      console.log(item);
+      if(item.title==='私密分享'){
+       // alert('私密分享');
+      this.privateShareDialog=true;
+      }else{
+        alert('外链分享');
+      }
+    },
+    copyFile(item){
+      let a = [];
+      this.findFolder=[];
+      a.push(this.item);
+      this.findFolderMethod(item.id,a);
+      let token = sessionStorage.getItem('token');
+      let b =  token.substring(1,token.length-1);
+      let flag = 0;
+      if(this.optionItem.type===null){
+        //文件夹判断同名
+        for(let i=0;i<this.findFolder[0].includeDirects.length;i++){
+          if(this.optionItem.name===this.findFolder[0].includeDirects[i].name){
+            //console.log(this.findFolder[0].includeDirects[i].name);
+            flag++;
+          }
+        }
+      }else{
+        //文件判断同名
+        for(let i=0;i<this.findFolder[0].includeFiles.length;i++){
+          if(this.optionItem.name===this.findFolder[0].includeFiles[i].name&&this.optionItem.type===this.findFolder[0].includeFiles[i].type){
+            flag++;
+          }
+        }
+      }
+      //alert(flag);
+      if(flag === 1){
+        alert("存在同名文件/文件夹！");
+      }else{
+        this.chooseFolder=true;
+        if(this.optionItem.type!==null){
+          //alert('复制文件');
+          let me = this;
+          this.axios.post('/cloud/user/copyfile',{
+            token:b,
+            newDirectID:item.id,
+            fileID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("复制成功！");
+              me.Refresh();
+              me.chooseFolder=false;
+              me.copyDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+          console.log(this.optionItem.type);
+        }else{
+          alert("移动文件夹!");
+          // {
+          //   "token":"c88f4abaa675463787f2b3d2cc91d891",
+          //     "newDirectID":"05dc4ebf6fa44c709485ccb881eb3a6e",
+          //     "directID":"1"
+          // }
+          // let me = this;
+          // this.axios.post('/cloud/user/copydilectfile',{
+          //   token:b,
+          //   newDirectID:item.id,
+          //   directID:this.optionItem.id
+          // }).then(function (response){
+          //   console.log(response);
+          //   if(response.data.status===200){
+          //     alert("复制成功！");
+          //     me.Refresh();
+          //     .chooseFolder=false;me
+          //     me.copyDialog=false;
+          //   }
+          // }).catch(function (error){
+          //   console.log(error);
+          // })
         }
       }
     }
