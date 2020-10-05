@@ -293,22 +293,10 @@
             <v-card-text>
               <v-container>
                 <v-row>
+
                   <v-col
                       cols="12"
-                      md="6"
-                  >
-                    <v-text-field
-                        outlined
-                        dense
-                        v-model="userAddInfo.workID"
-                        label="工号"
-                        :rules="workIDRules"
-                        required
-                    ></v-text-field>
-                  </v-col>
-                  <v-col
-                      cols="12"
-                      md="6"
+                      md="12"
                   >
                     <v-text-field
                         outlined
@@ -575,12 +563,12 @@ export default {
       phoneRules: [
         v => !!v || '手机号不能为空！',   //不能为空，如果为空则输入框下方以红色字体显示‘Name is required’
         v => (v && v.length <= 11) || '手机号长度不对',
-        v => (v && /^1[34578]\d{9}$/.test(this.userUpdateInfo.phone))|| '手机号格式不对',
+        v => (v && /^1[34578]\d{9}$/.test(v))|| '手机号格式不对',
       ],
       emailRules: [
         v => !!v || '电子邮箱不能为空！',   //不能为空，如果为空则输入框下方以红色字体显示‘Name is required’
           //^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
-        v => (v && /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(this.userUpdateInfo.email))|| '邮箱格式不对',
+        v => (v && /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(v))|| '邮箱格式不对',
       ],
       sexRules:[
         v => !!v || '性别不能为空！',   //不能为空，如果为空则输入框下方以红色字体显示‘Name is required’
@@ -796,7 +784,96 @@ export default {
       }
     },
     importOne(){
-      alert('单次导入');
+      //alert('单次导入');
+      // userAddInfo:{
+      //   userID:'',
+      //       workID:'',
+      //       name:'',
+      //       sex:'',
+      //       phone:'',
+      //       email:'',
+      // },
+      let me = this;
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      if(this.userAddInfo.name===''){
+        alert('姓名不能为空！');
+      }else if(this.userAddInfo.sex===''){
+        alert('性别不能为空！');
+      }else if(this.userAddInfo.phone===''){
+        alert('手机号不能为空！');
+      }else if(this.userAddInfo.email===''){
+        alert('电子邮箱不能为空！');
+      }else if(!/^1[34578]\d{9}$/.test(this.userAddInfo.phone)){
+        alert('手机号格式不对，请重新输入！');
+      }else if(!/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(this.userAddInfo.email)){
+        alert('电子邮箱格式不对，请重新输入！');
+      }else{
+        // let sex = '';
+        // if(this.userAddInfo.sex==='男'){
+        //   sex="M";
+        // }else{
+        //   sex="F";
+        // }
+        this.axios.post('/cloud/user/manage/importsingle',{
+          token:b,
+          user:{
+            userName:this.userAddInfo.name,
+            userSex:this.userAddInfo.sex,
+            userPhone:this.userAddInfo.phone,
+            userEmail:this.userAddInfo.email
+          }
+        }).then(function (response){
+         // console.log(sex);
+          console.log(response.data);
+          if(response.data.status===200){
+            alert('导入用户成功！');
+            me.addOneUserDialog=false;
+            me.loading=true;
+            let resultArray=[];
+            me.axios.post('/cloud/user/manage/all',{
+              token:b
+            }).then(function (response) {
+              if(response.data.data.length!==0){
+                for(let i=0;i<response.data.data.length;i++){
+                  let obj={
+                    userID:'',
+                    workID:'',
+                    name:'',
+                    sex:'',
+                    phone:'',
+                    email:'',
+                    createTime:'',
+                    status:0
+                  };
+                  obj.userID=response.data.data[i].userId;
+                  obj.workID=response.data.data[i].userWorkId;
+                  obj.name=response.data.data[i].userName;
+                  if(response.data.data[i].userSex==="M"){
+                    obj.sex="男";
+                  }else{
+                    obj.sex="女";
+                  }
+                  obj.phone=response.data.data[i].userMobie;
+                  obj.email=response.data.data[i].userEmail;
+                  obj.createTime=response.data.data[i].userTime;
+                  obj.status=response.data.data[i].userStatus;
+                  resultArray.push(obj);
+                }
+              }
+              me.Info=resultArray;
+              me.tempInfo=resultArray;
+              me.loading=false;
+              // console.log(response.data.data);
+            }).catch(function (error) {
+              console.log(error);
+            });
+          }
+        }).catch(function (error){
+          console.log(error);
+        })
+      }
     },
 
     Forbid(){
@@ -939,6 +1016,9 @@ export default {
         this.addMoreAlert="请选择待导入的xls文件！";
         this.addMoreUserDialog=true;
       }else{
+        let a = sessionStorage.getItem('token');
+        //let resultArray=[];
+        let b =  a.substring(1,a.length-1);
         let url = document.querySelector("#addMore").value;
         let filextension = url.substring(url.lastIndexOf("."), url.length);
         filextension = filextension.toLowerCase();
@@ -949,18 +1029,23 @@ export default {
           //alert('可以批量导入');
           ///cloud/user/manage/uploadfile
           let formData = new window.FormData();
-          formData.append(this.uploadFileName, document.getElementById("addMore").files[0]);
+          formData.append('file', document.getElementById("addMore").files[0]);
           //this.axios.post()
-          let options = {  // 设置axios的参数
-            url: '/cloud/user/manage/uploadfile',
-            data: formData,
-            method: 'post',
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          }
+          let options = {
+              method : "post",
+              url : "/cloud/user/manage/importservals",
+              withCredentials: false,
+              headers : {'Content-Type': 'multipart/form-data','token':b},
+              responseType : 'text',
+              data : formData,
+            };
           this.axios(options).then(function (response){
             console.log(response);
+            if(response.data.status===500){
+              alert('批量导入失败！原因:'+response.data.msg);
+            }else if(response.data.status===200){
+              alert('批量导入成功');
+            }
           }).catch(function (error){
             console.log(error);
           })

@@ -47,16 +47,16 @@
                 </v-btn>
               </div>
               <div class="ma-1 pa-1">
-                <v-btn v-show="uploadButton"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
+                <v-btn v-show="uploadButton" :disabled="uploadPermission"  color="primary" @click="uploadDialog=true"><v-icon>{{button1.icon}}</v-icon>上传</v-btn>
               </div>
               <div class="ma-1 pa-1">
-                <v-btn  color="primary" @click="download()"><v-icon >{{button2.icon}}</v-icon>下载</v-btn>
+                <v-btn  color="primary" :disabled="downloadPermission"   @click="download()"><v-icon >{{button2.icon}}</v-icon>下载</v-btn>
               </div>
               <div class="ma-1 pa-1">
                 <v-btn  color="primary"  @click="Refresh()"><v-icon>{{button4.icon}}</v-icon>刷新</v-btn>
               </div>
               <div class="ma-1 pa-1">
-                <v-btn v-show="newFolderButton"  @click="newFolderDialog=true" color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
+                <v-btn v-show="newFolderButton" :disabled="newFolderPermission"   @click="newFolderDialog=true" color="primary"><v-icon>mdi-plus</v-icon>新建文件夹</v-btn>
               </div>
 
 
@@ -488,6 +488,7 @@
                     v-bind="attrs"
                     v-on="on"
                     @click="shareItem(item)"
+                    :disabled="sharePermission"
                 >
                   mdi-share
                 </v-icon>
@@ -503,6 +504,7 @@
                     v-bind="attrs"
                     v-on="on"
                     @click="deleteItem(item)"
+                    :disabled="deletePermission"
                 >
                   mdi-delete
                 </v-icon>
@@ -531,6 +533,7 @@
                     v-for="(item, index) in items"
                     :key="index"
                     @click="moreOption(item)"
+                    :disabled="item.permission"
                 >
                   <v-list-item-title>{{ item.title }}</v-list-item-title>
                 </v-list-item>
@@ -621,9 +624,9 @@ export default {
 
       items: [
         //操作-更多 的下拉菜单文字内容
-        { title: '移动到' },
-        { title: '复制到' },
-        { title: '重命名' }
+        { title: '移动到' ,permission:false},
+        { title: '复制到' ,permission:false},
+        { title: '重命名' ,permission:false}
       ],
       filesIcon: {
         //文件类型对应图标
@@ -691,7 +694,20 @@ export default {
       clickToUpload:false,
       createFolderProgress:false,
       clickToNewFolder:false,
-      closeCreateFolder:false
+      closeCreateFolder:false,
+      //permission群组权限禁用按钮
+      //上传
+      uploadPermission:false,
+      //下载
+      downloadPermission:false,
+      //删除
+      deletePermission:false,
+      //新建文件夹
+      newFolderPermission:false,
+      //分享
+      sharePermission:false,
+
+
     }
   },
   beforeMount(){
@@ -716,7 +732,60 @@ export default {
   methods:{
     accessGroup(item){
       console.log(item);
-      //alert(item.departName);
+      //alert(item.permission);
+      //item.permission->取出权限字符串
+      //  '11111111-文档管理员（上传、下载、删除、创建文件夹、分享、复制、移动、重命名）
+      console.log(sessionStorage.getItem('permission'));
+      if(sessionStorage.getItem('permission')===0){
+        let permissionArray= Array.prototype.slice.call(item.permission);
+        if(permissionArray[0]==='0'){
+          this.uploadPermission=true;
+        }else{
+          this.uploadPermission=false;
+        }
+        if(permissionArray[1]==='0'){
+          this.downloadPermission=true;
+        }else{
+          this.downloadPermission=false;
+        }
+        if(permissionArray[2]==='0'){
+          this.deletePermission=true;
+        }else{
+          this.deletePermission=false;
+        }
+        if(permissionArray[3]==='0'){
+          this.newFolderPermission=true;
+        }else{
+          this.newFolderPermission=false;
+        }
+        if(permissionArray[4]==='0'){
+          this.sharePermission =true;
+        }else{
+          this.sharePermission =false;
+        }
+        if(permissionArray[5]==='0'){
+          this.items[0].permission =true;
+        }else{
+          this.items[0].permission =false;
+        }
+        if(permissionArray[6]==='0'){
+          this.items[1].permission =true;
+        }else{
+          this.items[1].permission =false;
+        }
+        if(permissionArray[7]==='0'){
+          this.items[2].permission =true;
+        }else{
+          this.items[2].permission =false;
+        }      //a[0-7]（上传、下载、删除、创建文件夹、分享、复制、移动、重命名）
+        // let a=item.permission;
+        // let b=Array.prototype.slice.call(a);
+        // console.log(a);
+      }
+
+
+
+
       let me = this;
       me.loading=true;
       // this.files = this.dataSolver(this.item);

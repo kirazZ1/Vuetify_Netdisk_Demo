@@ -73,7 +73,7 @@ router.beforeEach((to, from, next) => {
     }else{
       //if()
       //在这里进行用户权限的判断（管理员or普通用户）
-      let b = parseInt(sessionStorage.getItem('firstLogin'));
+      let b = parseInt(sessionStorage.getItem('permission'));
       if(b===0){
         if(to.path==='/Dashboard/fileManagerManage') {
           next({path: '/Dashboard/myFiles'});

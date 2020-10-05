@@ -19,7 +19,8 @@ export default {
   provide(){
     return{
       loginDash:this.loginDash,
-      reload:this.reload
+      reload:this.reload,
+      reloadDash:this.reloadDash
     }
   },
   watch: {
@@ -50,7 +51,16 @@ export default {
       this.$nextTick(function (){
         this.isRouterAlive= true;
         this.$router.push({  //核心语句
-          path: '/login' ,   //跳转的路径
+          path: '/' ,   //跳转的路径
+        })
+      })
+    },
+    reloadDash(){
+      this.isRouterAlive= false;
+      this.$nextTick(function (){
+        this.isRouterAlive= true;
+        this.$router.push({  //核心语句
+          path: '/Dashboard' ,   //跳转的路径
         })
       })
     }

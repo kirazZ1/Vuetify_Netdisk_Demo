@@ -267,6 +267,14 @@
 
               </v-tooltip>
             </v-toolbar>
+            <v-progress-linear
+                :active="moveProgress"
+
+                indeterminate
+                absolute
+                bottom
+                color="deep-purple accent-4"
+            ></v-progress-linear>
             <v-card-text>
               <v-container>
                 <div class="ma-1 pa-1"></div>
@@ -325,7 +333,14 @@
 
               </v-tooltip>
             </v-toolbar>
+            <v-progress-linear
+                :active="copyProgress"
 
+                indeterminate
+                absolute
+                bottom
+                color="deep-purple accent-4"
+            ></v-progress-linear>
             <v-card-text>
               <v-container>
 
@@ -386,8 +401,8 @@
               <v-container>
                 <v-select
                     v-model="shareToValue"
-                    item-text="name"
-                    item-value="id"
+                    item-text="userName"
+                    item-value="userID"
                     :items="shareToWho"
                     return-object
                     label="分享给"
@@ -412,10 +427,16 @@
                   </template>
 
                 </v-select>
+                <v-radio-group v-model="privateShareDays" row>
+                  <v-radio label="7天" value=7></v-radio>
+                  <v-radio label="30天" value=30></v-radio>
+                  <v-radio label="60天" value=60></v-radio>
+                </v-radio-group>
               </v-container>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="privateShare()">分享</v-btn>
               <v-btn color="blue darken-1" text @click="privateShareDialog = false">关闭</v-btn>
             </v-card-actions>
           </v-card>
@@ -633,6 +654,7 @@ export default {
       //upload:null,
       uploadFileName:'',
       renameFileName:'',
+      shareCode:'',
       viewFolder:[],
       //2020-09-11
       //面包屑导航
@@ -735,6 +757,7 @@ export default {
       renameAlert:false,
       moveAlert:false,
       copyAlert:false,
+      privateShareDays:null,
       fileInfo:
       {
             id:'',
@@ -755,20 +778,18 @@ export default {
       loading:false,
       uploadProgress:false,
       createFolderProgress:false,
+      copyProgress:false,
+      moveProgress:false,
       closeUploadDialog:false,
       clickToUpload:false,
       closeCreateFolder:false,
       clickToNewFolder:false,
       chooseFolder:false,
       shareToWho: [
-        {id:'10001',name:'张三'},
-        {id:'10002',name:'李四'},
-        {id:'10003',name:'王五'},
-        {id:'10004',name:'刘德华'},
-        {id:'10005',name:'古天乐'},
-        {id:'10006',name:'周杰伦'},
-        {id:'10007',name:'张家辉'},
+        {userID:'',workID:'',userName:''},
+
       ],
+      shareFile:null
     }
   },
   computed:{
@@ -1154,7 +1175,7 @@ export default {
         return expectJson;
       }
     },
-    parseTreeJson(item){//对json树进行遍历获取根节点（递归实现）item-传入的json字符串数组(后台发来的，未经过处理的json字符串，需要用数组包装后调用)
+    parseTreeJson(item){//对json树进行遍历获取叶子节点（递归实现）item-传入的json字符串数组(后台发来的，未经过处理的json字符串，需要用数组包装后调用)
       //可以知道，所有文件都是根节点，文件夹和文件的区别在于type字段是否为空
       //let resultArray = [];
 
@@ -1479,8 +1500,6 @@ export default {
       //console.log(11111);
       //console.log(a);
       this.viewFolder=a;
-
-
       //console.log(this.viewFolder);
 
     },
@@ -1665,6 +1684,7 @@ export default {
       if(flag === 1){
           alert("存在同名文件/文件夹！");
       }else{
+        this.moveProgress=true;
         this.chooseFolder=true;
         if(this.optionItem.type!==null){
           let me = this;
@@ -1678,6 +1698,7 @@ export default {
               if(response.data.status===200){
                 alert("移动成功！");
                 me.Refresh();
+                me.moveProgress=false;
                 me.moveDialog=false;
               }
             }).catch(function (error){
@@ -1701,7 +1722,8 @@ export default {
             if(response.data.status===200){
               alert("移动成功！");
               me.Refresh();
-              this.chooseFolder=false;
+              me.chooseFolder=false;
+              me.moveProgress=false;
               me.moveDialog=false;
             }
           }).catch(function (error){
@@ -1866,14 +1888,133 @@ export default {
     },
     shareButton(item){
       console.log(item);
+      this.shareFile=item;
     },
     share(item){
       console.log(item);
+      //this.shareFile=item;
+      let me = this;
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
       if(item.title==='私密分享'){
        // alert('私密分享');
-      this.privateShareDialog=true;
+       // console.log(this.shareFile.type);
+       //  if(this.shareFile.type===null){
+       //    alert('暂不支持分享文件夹');
+       //  }else{
+          //this.shareFile=item;
+          console.log('分享文件');
+          console.log(this.shareFile);
+          this.shareToWho=[];
+          this.axios.post('/cloud/user/showUserForShare',{
+            token:b
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              if(response.data.data!==null){
+                for(let i=0;i<response.data.data.length;i++){
+                  let obj={
+                    userID:'',
+                    workID:'',
+                    userName:''
+                  };
+                  obj.workID=response.data.data[i].workID;
+                  obj.userID=response.data.data[i].userID;
+                  obj.userName=response.data.data[i].workID+"    "+response.data.data[i].userName;
+                  me.shareToWho.push(obj);
+                }
+              }
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+          this.privateShareDialog=true;
+
+        //}
+
       }else{
-        alert('外链分享');
+        if(this.shareFile.type===null){
+          alert('暂不支持文件夹外链分享!');
+        }else{
+          alert('可以外链分享');
+        }
+
+        // {
+        //     "token": "eabe00623c924cd6a6267eec187c2c11",
+        //     "newDirectID": "1",
+        //     "fileID": "1",
+        //     "shareTime": "3600",
+        //     "code": "1234"
+        // }
+      }
+    },
+    privateShare(){
+      // {
+      //   "token": "fb1ec2efa1734e0da0cd486db363f8b5",
+      //     "directID": "1",       //面包屑
+      //     "fileID":"1",        //this.shareFile.id
+      //     "shareTime": "3600",   //this.privateShareDays*60*60*24
+      //     "users": [
+      //   1,
+      //   2
+      // ]
+      // }
+      if(this.shareToValue.length===0){
+        alert('请选择私密分享给的用户！');
+      }else if(this.privateShareDays===null){
+        alert('请选择分享时间！');
+      }else{
+         let me = this;
+         let a = sessionStorage.getItem('token');
+        // //let resultArray=[];
+         let b =  a.substring(1,a.length-1);
+        //console.log(this.shareToValue);
+        //用户数组
+        let userIDArray=[];
+        for(let i=0;i<this.shareToValue.length;i++){
+          userIDArray.push(this.shareToValue[i].userID);
+        }
+        console.log(userIDArray);
+        //分享时间（秒）
+        //console.log()
+        let shareTime = this.privateShareDays*60*60*24;
+        if(this.shareFile.type===null){//分享的是文件夹
+          //alert('文件夹');
+          this.axios.post('/cloud/user/privateShare',{
+            token:b,
+            directID:this.shareFile.id,
+            shareTime:shareTime,
+            users:userIDArray
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert('分享成功!');
+              me.shareToValue=[];
+              me.privateShareDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+        }else{
+          this.axios.post('/cloud/user/privateShare',{
+            token:b,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+            fileID:this.shareFile.id,
+            shareTime:shareTime,
+            users:userIDArray
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert('分享成功!');
+              me.shareToValue=[];
+              me.privateShareDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+        }
+
       }
     },
     copyFile(item){
@@ -1904,6 +2045,7 @@ export default {
       if(flag === 1){
         alert("存在同名文件/文件夹！");
       }else{
+        this.copyProgress=true;
         this.chooseFolder=true;
         if(this.optionItem.type!==null){
           //alert('复制文件');
@@ -1918,6 +2060,7 @@ export default {
               alert("复制成功！");
               me.Refresh();
               me.chooseFolder=false;
+              me.copyProgress=false;
               me.copyDialog=false;
             }
           }).catch(function (error){
@@ -1925,28 +2068,29 @@ export default {
           })
           console.log(this.optionItem.type);
         }else{
-          alert("移动文件夹!");
+          //alert("文件夹复制检修中!");
           // {
           //   "token":"c88f4abaa675463787f2b3d2cc91d891",
           //     "newDirectID":"05dc4ebf6fa44c709485ccb881eb3a6e",
           //     "directID":"1"
           // }
-          // let me = this;
-          // this.axios.post('/cloud/user/copydilectfile',{
-          //   token:b,
-          //   newDirectID:item.id,
-          //   directID:this.optionItem.id
-          // }).then(function (response){
-          //   console.log(response);
-          //   if(response.data.status===200){
-          //     alert("复制成功！");
-          //     me.Refresh();
-          //     .chooseFolder=false;me
-          //     me.copyDialog=false;
-          //   }
-          // }).catch(function (error){
-          //   console.log(error);
-          // })
+          let me = this;
+          this.axios.post('/cloud/user/movedepartdirectfile',{
+            token:b,
+            newDirectID:item.id,
+            directID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("复制成功！");
+              me.Refresh();
+              me.copyProgress=false;
+              me.chooseFolder=false;
+              me.copyDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
         }
       }
     }

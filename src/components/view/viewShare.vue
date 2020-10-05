@@ -45,7 +45,7 @@
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-content>
+                  <v-list-item-content v-if="dialogInfo.type!=='私密'">
                     <v-list-item-title>分享链接</v-list-item-title>
                     <v-textarea
                         id="copy"
@@ -62,7 +62,7 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1"  class="btn" text @click="copyLink()" data-clipboard-target="#copy"
+            <v-btn color="blue darken-1"  class="btn" text @click="copyLink()" data-clipboard-target="#copy" v-show="dialogInfo.type!=='私密'?true:false"
             >复制分享链接</v-btn>
             <v-btn color="blue darken-1" text @click="infoDialog = false">取消分享</v-btn>
             <v-btn color="blue darken-1" text @click="infoDialog = false">关闭</v-btn>

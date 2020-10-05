@@ -87,7 +87,7 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1" text @click="closeDialog2()">关闭</v-btn>
-                <v-btn color="blue darken-1" text @click="dialog2 = false">保存</v-btn>
+                <v-btn color="blue darken-1" text @click="saveInfo()">保存</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -207,9 +207,9 @@ export default {
       }
       me.user.userPhone=response.data.data.userMobie;     //用户手机号
       me.user.userEmail=response.data.data.userEmail;       //用户邮箱
-      let userCreateTimeString=response.data.data.userTime;     //拿到时间字符串
+      //let userCreateTimeString=response.data.data.userTime;     //拿到时间字符串
       //以下进行时间格式转换
-      me.user.userCreateTime=me.timefilters(userCreateTimeString);
+      me.user.userCreateTime=response.data.data.userTime;
       // let d = new Date(userCreateTimeString);
       // // var a= d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();              /*d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1*/
       // me.user.userCreateTime= d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1) + '-' + (d.getDate()<10 ? "0" +d.getDate():d.getDate())+ ' ' + (d.getHours()<10 ?"0"+d.getDate():d.getDate()) + ':' + (d.getMinutes()<10 ? "0" + d.getMinutes(): d.getMinutes()) + ':' + (d.getSeconds()<10 ? "0" + d.getSeconds() : d.getSeconds() );
@@ -289,8 +289,28 @@ export default {
       this.dialog2 = false;
       this.userModify.userPhone=this.user.userPhone;
       this.userModify.userEmail=this.user.userEmail;
+    },
+    saveInfo(){
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      let me = this;
+      this.axios.post('/cloud/user/manager/sup/updateUserInfo',{
+        token:b,
+        userMobie:this.userModify.userPhone,
+        userEmail:this.userEmail
+      }).then(function (response){
+        console.log(response);
+        if(response.data.status===200){
+          alert('修改成功!');
+          me.user.userEmail=me.userModify.userEmail;
+          me.user.userPhone=me.userModify.userPhone;
+          me.dialog2=false;
+        }
+      }).catch(function (error){
+        console.log(error);
+      })
     }
-
   },
   data(){
     return{
