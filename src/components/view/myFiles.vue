@@ -441,7 +441,42 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <!--外链分享对话框-->
+        <v-dialog
+            v-model="linkShareDialog"
+            persistent max-width="600px"
+        >
+          <v-card>
+            <v-toolbar
+                color="light-blue darken-4"
+                dark
+                flat
+            >
+              <v-toolbar-title>外链分享</v-toolbar-title>
 
+              <v-spacer></v-spacer>
+              <v-tooltip bottom>
+
+              </v-tooltip>
+            </v-toolbar>
+            <v-container>
+              <v-text-field
+                  v-model="shareCode"
+                  label="分享密码"
+              ></v-text-field>
+              <v-radio-group v-model="linkShareDays" row>
+                <v-radio label="7天" value=7></v-radio>
+                <v-radio label="30天" value=30></v-radio>
+                <v-radio label="60天" value=60></v-radio>
+              </v-radio-group>
+            </v-container>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="linkShare()">分享</v-btn>
+              <v-btn color="blue darken-1" text @click="linkShareDialog = false">关闭</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
         <!--搜索框-->
         <v-col
             md="2"
@@ -758,6 +793,7 @@ export default {
       moveAlert:false,
       copyAlert:false,
       privateShareDays:null,
+      linkShareDays:null,
       fileInfo:
       {
             id:'',
@@ -789,7 +825,8 @@ export default {
         {userID:'',workID:'',userName:''},
 
       ],
-      shareFile:null
+      shareFile:null,
+      linkShareDialog:false
     }
   },
   computed:{
@@ -1937,7 +1974,8 @@ export default {
         if(this.shareFile.type===null){
           alert('暂不支持文件夹外链分享!');
         }else{
-          alert('可以外链分享');
+          //alert('可以外链分享');
+          this.linkShareDialog=true;
         }
 
         // {
@@ -2092,6 +2130,50 @@ export default {
             console.log(error);
           })
         }
+      }
+    },
+    linkShare(){
+      //console.log(this.shareCode);
+      if(this.shareCode===''){
+        alert('分享密码不能为空!');
+      }else if(this.shareCode.length!==4){
+        alert('分享密码长度应为4位!');
+      }else if(this.linkShareDays===null){
+        alert('请选择分享时间！');
+      }else{
+        alert('可以外链分享');
+        // console.log(this.shareCode);
+        // console.log(this.linkShareDays);
+        // console.log(this.shareFile.id);
+        // console.log(this.breadcrumb_items[this.breadcrumb_items.length-1].text);
+        // {
+        //   "token": "eabe00623c924cd6a6267eec187c2c11",
+        //     "newDirectID": "1",
+        //     "fileID": "1",
+        //     "shareTime": "3600",
+        //     "code": "1234"
+        // }/cloud/user/publicShare
+        let me = this;
+        let a = sessionStorage.getItem('token');
+        // //let resultArray=[];
+        let b =  a.substring(1,a.length-1);
+        let shareTime = this.linkShareDays*60*60*24;
+        this.axios.post('/cloud/user/publicShare',{
+          token:b,
+          newDirectID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+          fileID:this.shareFile.id,
+          shareTime:shareTime,
+          code:this.shareCode
+        }).then(function (response){
+          console.log(response);
+          if(response.data.status===200){
+            alert('分享成功!');
+            me.shareCode='';
+            me.linkShareDialog=false;
+          }
+        }).catch(function (error){
+          console.log(error);
+        })
       }
     }
   }

@@ -231,7 +231,7 @@
             <v-row>
               <v-col md="3">
                 <div class="ma-1 pa-1" >
-                  <v-btn  color="primary" @click="addGroupUserDialog=true">
+                  <v-btn  color="primary" @click="addGroupUser()">
                     <v-icon dark left >mdi-plus</v-icon>
                     增加部门成员
                   </v-btn>
@@ -272,9 +272,39 @@
             <v-tooltip bottom>
             </v-tooltip>
           </v-toolbar>
+          <v-container>
+            <v-select
+                v-model="addValue"
+                item-text="userName"
+                item-value="workID"
+                :items="addWho"
+                return-object
+                label="增加部门成员"
+                chips
+                multiple
+
+                hint="请选择要设定为部门成员的用户"
+            >
+              <template v-slot:prepend-item>
+                <v-list-item
+                    ripple
+                    @click="toggle()"
+                >
+                  <v-list-item-action>
+                    <v-icon :color="addWho.length > 0 ? 'indigo darken-4' : ''">{{ icon }}</v-icon>
+                  </v-list-item-action>
+                  <v-list-item-content>
+                    <v-list-item-title>全选</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-divider class="mt-2"></v-divider>
+              </template>
+            </v-select>
+          </v-container>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" :disabled="closeAuthorityDialog" text @click="addGroupUserDialog = false">关闭</v-btn>
+            <v-btn color="blue darken-1" :disabled="AddUser" text @click="addUserSubmit()">提交</v-btn>
+            <v-btn color="blue darken-1" :disabled="closeAddUserDialog" text @click="addGroupUserDialog = false">关闭</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -310,6 +340,22 @@ import {
 //import Clipboard from 'clipboard';
 export default {
   name: "managerGroupFile",
+  computed:{
+    icon(){
+      if(this.addValue.length===this.addWho.length){//全选
+        // console.log('全选');
+        return 'mdi-close-box';
+      }else if(this.addValue.length>0&&this.addValue<this.addWho){//多选但不是全选
+        // console.log('多选');
+        return 'mdi-minus-box';
+      }else{
+        // console.log('不选');
+        return 'mdi-checkbox-blank-outline';
+      }
+
+    }
+
+  },
   beforeMount() {
     this.loading=true;
     let a = sessionStorage.getItem('token');
@@ -380,6 +426,7 @@ export default {
       authorityDialog:false,
       authoritySettingProgress:false,
       closeAuthorityDialog:false,
+      closeAddUserDialog:false,
       settingAuthority:false,
       upload:'0',
       download:'0',
@@ -391,10 +438,27 @@ export default {
       rename:'0',
       viewGroupDialog:false,
       items: [],
-      selectGroupUser:[]
+      selectGroupUser:[],
+      addValue:[],
+      AddUser:false,
+      addWho: [
+        {userID:'',workID:'',userName:''},
+      ],
     }
   },
   methods:{
+    toggle () {
+      this.$nextTick(() => {
+        //console.log(this.shareToValue.length);
+        //console.log(this.shareToWho.length);
+        if (this.addValue.length===this.addWho.length) {//全选点击清空
+
+          this.addValue = [];
+        } else {//非全选点击
+          this.addValue = this.addWho;
+        }
+      })
+    },
     createGroup(){
       if(this.newGroupName===''){
         alert('请输入群组名！');
@@ -645,6 +709,7 @@ export default {
         //   "23420feb1b9449f08030ea4823895bb2","2d115381bdd04a9f80657e61f17ec060"
         // ]
         // }
+
         let a = sessionStorage.getItem('token');
         let b =  a.substring(1,a.length-1);
         let me = this;
@@ -678,6 +743,99 @@ export default {
         })
       //console.log(this.selectGroupUser);
       }
+    },
+    addGroupUser(){
+
+      let me = this;
+      me.addWho=[];
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      this.axios.post('/cloud/user/manage/showUserforAdd',{
+        token:b,
+        departID:this.selected[0].id
+      }).then(function (response){
+        console.log(response);
+        if(response.data.status===200){
+          if(response.data.data!==null){
+            for(let i=0;i<response.data.data.length;i++){
+              let obj={
+                userID:'',
+                workID:'',
+                userName:''
+              };
+              obj.workID=response.data.data[i].userWorkId;
+              obj.userID=response.data.data[i].userId;
+              obj.userName=response.data.data[i].userWorkId+"    "+response.data.data[i].userName;
+              me.addWho.push(obj);
+            }
+          }
+        }
+      }).catch(function (error){
+        console.log(error);
+      })
+      this.addGroupUserDialog=true;
+    },
+    addUserSubmit(){
+      // {
+      //   "token":"e0ddf3c4bc754a03b57fa9cabe6fdc6b",
+      //   "departId":"e311ec6f2d8e45d0a078b5e5ed529671",
+      //   "userIds":[
+      //   "757e1e701b5049f4aa96ea3d07a144bb"
+      // ]
+      // }
+      // console.log('departID:'+this.selected[0].id);
+      // console.log('userID:');
+      // console.log(this.addValue);
+      //token
+      if(this.addValue.length===0){
+        alert('请选择要添加进部门的用户！');
+      }else{
+        let me = this;
+        this.AddUser=true;
+        this.closeAddUserDialog=true;
+        let a = sessionStorage.getItem('token');
+        let b =  a.substring(1,a.length-1);
+        //userIds
+        let userArray=[];
+        for(let i=0;i<this.addValue.length;i++){
+          userArray.push(this.addValue[i].userID);
+        }
+        //console.log(userArray);
+        this.axios.post('/cloud/user/manage/addUserToDep',{
+          token:b,
+          departId:this.selected[0].id,
+          userIds:userArray
+        }).then(function (response){
+          console.log(response);
+          if(response.data.status===200){
+            alert("添加成功！");
+            me.AddUser=false;
+            me.closeAddUserDialog=false;
+            me.addGroupUserDialog=false;
+            me.axios.post('/cloud/user/manage/selUserAtDep',{
+              token:b,
+              departID:me.selected[0].id
+            }).then(function (response){
+              //console.log(response);
+              let resultArray=[];
+              for(let i=0;i<response.data.data.length;i++){
+                let obj={
+                  name:response.data.data[i].userWorkId+"   "+response.data.data[i].userName,
+                  id:response.data.data[i].userId
+                };
+                console.log(obj);
+                resultArray.push(obj);
+              }
+              me.items=resultArray;
+            })
+          }
+
+        }).catch(function (error){
+          console.log(error);
+        })
+      }
+
     }
   }
 }

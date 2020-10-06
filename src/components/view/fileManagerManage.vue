@@ -63,9 +63,9 @@
                   item-value="workID"
                   :items="addWho"
                   return-object
-                  label="新的文档管理员"
+                  label="新的群组成员"
                   chips
-                  hint="请选择要设定为文档管理员的用户"
+                  hint="请选择要设定为新的群组成员的用户"
               ></v-select>
             </v-container>
           </v-card-text>
@@ -185,7 +185,6 @@ export default {
       let a = sessionStorage.getItem('token');
       //let resultArray=[];
       let b =  a.substring(1,a.length-1);
-      // alert('私密分享');
       this.axios.post('/cloud/user/manage/sup/simpleUser',{
           token:b
       }).then(function (response){
