@@ -382,7 +382,7 @@
                         </v-icon>
                       </template>
                       <template v-slot:append="{ item }">
-                        <v-btn text color="primary" @click="moveFile(item)" >选择</v-btn>
+                        <v-btn text color="primary" @click="copyFile(item)" >选择</v-btn>
                       </template>
                     </v-treeview>
                   </v-card>
@@ -486,6 +486,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-icon
                     medium
+                    v-show=false
                     v-bind="attrs"
                     v-on="on"
                     @click="shareItem(item)"
@@ -1421,34 +1422,13 @@ export default {
 
     },
     moveFile(item){//移动文件/文件夹
-      //需要判断当前文件夹是否有同名文件
-      //item.id--->目标文件夹id
-      //this.optionItem.name--->要移动的文件/文件夹名称
-      //this.optionItem.type--->要移动的文件类型
-      //过程：1.通过目标文件夹id在文件树中找到对应文件夹的json，格式如下：
-      // {
-      //   directID:''         //文件夹ID
-      //   name:'四大名著',		//文件夹名称
-      //   size:,			//为了方便，文件夹大小不做计算，如果后台传来更好
-      //   modificationDate:'2020-01-01'	//上传时间
-      //   includeDirects:[]
-      //   includeFiles:[]      //包含文件，此处可忽略
-      // }
-      //    2.在includeDirects/includeFiles里面找是否有同名同类型文件/文件夹
-      //      判断文件依据：type是否为undefined
-      //        移动的是文件:在includeFiles里找，同名同类型就是相同文件
-      //        移动的是文件夹:在includeDirects里找，同名就是相同文件夹
-      //过程1实现如下:
       let a = [];
       this.findFolder=[];
       a.push(this.item);
       this.findFolderMethod(item.id,a);
-      //console.log(this.findFolder);
-      // console.log(item);
-      //过程2实现如下:
-      // let b= this.findFolder[0].includeDirects;
-      // console.log(b);
-      //console.log(this.findFolder.includeFiles.length);
+      let token = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  token.substring(1,token.length-1);
       let flag = 0;
       //console.log(this.optionItem.type);
       if(this.optionItem.type===null){
@@ -1471,7 +1451,52 @@ export default {
       if(flag === 1){
         alert("存在同名文件/文件夹！");
       }else{
-        alert("移动成功!");
+        this.moveProgress=true;
+        this.chooseFolder=true;
+        if(this.optionItem.type!==null){
+          let me = this;
+
+          this.axios.post('/cloud/user/movefile',{
+            token:b,
+            newDirectID:item.id,
+            fileID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("移动成功！");
+              me.Refresh();
+              me.moveProgress=false;
+              me.moveDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+          console.log(this.optionItem.type);
+        }else{
+          //alert("移动文件夹!");
+          // {
+          //   "token":"c88f4abaa675463787f2b3d2cc91d891",
+          //     "newDirectID":"05dc4ebf6fa44c709485ccb881eb3a6e",
+          //     "directID":"1"
+          // }
+          let me = this;
+          this.axios.post('/cloud/user/movedirectfile',{
+            token:b,
+            newDirectID:item.id,
+            directID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("移动成功！");
+              me.Refresh();
+              me.chooseFolder=false;
+              me.moveProgress=false;
+              me.moveDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+        }
       }
 
     },
@@ -1491,12 +1516,202 @@ export default {
 
 
     },
+    // rename(){
+    //   if(this.renameFileName===''){
+    //     this.renameAlert=true;
+    //     this.renameMessage="文件名不能为空";
+    //   }else{
+    //     alert("重命名"+this.optionItem.name+"为"+this.renameFileName);
+    //   }
+    // },
     rename(){
       if(this.renameFileName===''){
         this.renameAlert=true;
         this.renameMessage="文件名不能为空";
+      }else {
+        console.log(this.optionItem);
+        if(this.optionItem.type===null){//文件夹重命名
+          //需要进行同目录同名检验
+          let flag = 0;
+          for (let i = 0; i < this.files.length; i++) {
+            if (this.files[i].type === null) {//type字段为null,说明为文件夹
+              if (this.renameFileName === this.files[i].name) {
+                flag++;
+              }
+            }
+          }
+          //console.log(this.files[1]);
+          if (flag === 1) {
+            alert("存在同名文件夹");
+          }else{
+            //alert("可以重命名");
+            // {
+            //   "token":"c88f4abaa675463787f2b3d2cc91d891",
+            //     "directID":"1",
+            //     "fileID":"1",
+            //     "newName":"新的命名"
+            // }
+            let a = sessionStorage.getItem('token');
+            //let resultArray=[];
+            let b =  a.substring(1,a.length-1);
+            let me = this;
+            this.axios.post('/cloud/user/redefilename',{
+              token:b,
+              directID:this.optionItem.id,
+              newName:this.renameFileName
+            }).then(function (response){
+              console.log(response);
+              if(response.data.status===200){
+                alert('重命名成功！');
+                console.log(response.data);
+                me.loading=true;
+                while(me.breadcrumbNum!=1){
+                  me.breadcrumb_items.pop();
+                  me.breadcrumbNum--;
+                }
+                me.breadcrumb_items[0].disabled=true;
+                me.axios.post('/cloud/user/userCatalogue',{
+                  token:b
+                }).then(function (response) {
+                  console.log(response.data.data);
+                  if(response.data.data!=null){
+                    me.item= response.data.data;
+                    me.breadcrumb_items[0].id=response.data.data.directID;
+                    //console.log( 'fuck');
+                    //console.log( me.item);
+                    me.files = me.dataSolver(me.item);
+                    me.loading=false;
+                    me.renameDialog=false;
+                    // this.createFolderProgress=false;
+                    // this.clickToNewFolder=false;
+                    // this.closeCreateFolder=false;
+                  }
+                  // console.log(response.data.data);
+                }).catch(function (error) {
+                  console.log(error);
+                });
+              }
+            }).catch(function (error){
+              console.log(error);
+            })
+
+          }
+        }else{//文件重命名
+          let flag = 0;
+          for(let i=0;i<this.files.length;i++){
+            if(this.files[i].type !== null){
+              //console.log(this.renameFileName+"."+this.optionItem.type);
+              let name=this.renameFileName+"."+this.optionItem.type;
+              //console.log(this.files[i].name);
+              if(name === this.files[i].name){
+                flag++;
+              }
+            }
+          }
+          if (flag !== 0) {
+            alert("存在同名文件");
+          }else{
+            // alert("可以重命名");
+            //this.renameFileName+"."+this.optionItem.type
+            let a = sessionStorage.getItem('token');
+            //let resultArray=[];
+            let b =  a.substring(1,a.length-1);
+            let me = this;
+            this.axios.post('/cloud/user/refilename',{
+              token:b,
+              directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
+              fileID:this.optionItem.id,
+              newName:this.renameFileName+"."+this.optionItem.type
+            }).then(function (response){
+              console.log(response);
+              if(response.data.status===200){
+                alert('重命名成功！');
+                me.Refresh();
+                me.loading=false;
+                me.renameDialog=false;
+              }
+            }).catch(function (error){
+              console.log(error);
+            })
+          }
+        }
+      }
+    },
+    copyFile(item){
+      let a = [];
+      this.findFolder=[];
+      a.push(this.item);
+      this.findFolderMethod(item.id,a);
+      let token = sessionStorage.getItem('token');
+      let b =  token.substring(1,token.length-1);
+      let flag = 0;
+      if(this.optionItem.type===null){
+        //文件夹判断同名
+        for(let i=0;i<this.findFolder[0].includeDirects.length;i++){
+          if(this.optionItem.name===this.findFolder[0].includeDirects[i].name){
+            //console.log(this.findFolder[0].includeDirects[i].name);
+            flag++;
+          }
+        }
       }else{
-        alert("重命名"+this.optionItem.name+"为"+this.renameFileName);
+        //文件判断同名
+        for(let i=0;i<this.findFolder[0].includeFiles.length;i++){
+          if(this.optionItem.name===this.findFolder[0].includeFiles[i].name&&this.optionItem.type===this.findFolder[0].includeFiles[i].type){
+            flag++;
+          }
+        }
+      }
+      //alert(flag);
+      if(flag === 1){
+        alert("存在同名文件/文件夹！");
+      }else{
+        this.copyProgress=true;
+        this.chooseFolder=true;
+        if(this.optionItem.type!==null){
+          //alert('复制文件');
+          let me = this;
+          this.axios.post('/cloud/user/copyfile',{
+            token:b,
+            newDirectID:item.id,
+            fileID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("复制成功！");
+              me.Refresh();
+              me.chooseFolder=false;
+              me.copyProgress=false;
+              me.copyDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+          console.log(this.optionItem.type);
+        }else{
+          //alert("文件夹复制检修中!");
+          // {
+          //   "token":"c88f4abaa675463787f2b3d2cc91d891",
+          //     "newDirectID":"05dc4ebf6fa44c709485ccb881eb3a6e",
+          //     "directID":"1"
+          // }
+          let me = this;
+          this.axios.post('/cloud/user/movedepartdirectfile',{
+            token:b,
+            newDirectID:item.id,
+            directID:this.optionItem.id
+          }).then(function (response){
+            console.log(response);
+            if(response.data.status===200){
+              alert("复制成功！");
+              me.Refresh();
+              me.copyProgress=false;
+              me.chooseFolder=false;
+              me.copyDialog=false;
+            }
+          }).catch(function (error){
+            console.log(error);
+          })
+        }
       }
     },
     BackToList(){
