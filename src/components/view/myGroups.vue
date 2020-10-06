@@ -475,7 +475,8 @@
             <!--          这里是表格中显示文件名的位置-->
             <!--          如果是文件夹名称，则可点击进入，面包屑对应更新-->
             <!--          初步设想，用v-if,v-else实现对type的判断，跟上面图标判别的逻辑大致相同-->
-            <v-btn text @click="clickFile(item)"> {{ item.name }}</v-btn>
+<!--            <v-btn text @click="clickFile(item)"> </v-btn>-->
+            <span @click="clickFile(item)">                                          {{ item.name }}</span>
 
           </template>
 
@@ -856,8 +857,97 @@ export default {
     },
     //删除文件
     deleteItem (item) {
-      alert("删除"+item.name);
+      // alert("删除"+item.name);
+      // console.log(item);
+
+      let me = this;
+      //1.处理token
+      let a = sessionStorage.getItem('token');
+      let b =  a.substring(1,a.length-1);
       console.log(item);
+      if(item.type===null){//删除文件夹
+        //alert('删除文件夹');
+        this.axios.post('/cloud/user/deleteDorDF',{
+          token:b,
+          type: 1,
+          id:item.id
+        }).then(function (response){
+          console.log(response);
+          if(response.data.status===200){
+            alert('删除成功！');
+            while(me.breadcrumbNum!=1){
+              me.breadcrumb_items.pop();
+              me.breadcrumbNum--;
+            }
+            me.breadcrumb_items[0].disabled=true;
+            me.loading=true;
+            me.axios.post('/cloud/user/userCatalogue',{
+              token:b
+            }).then(function (response) {
+              console.log(response.data.data);
+              if(response.data.data!=null){
+                me.item= response.data.data;
+                me.breadcrumb_items[0].id=response.data.data.directID;
+                //console.log( 'fuck');
+                //console.log( me.item);
+                me.files = me.dataSolver(me.item);
+                me.loading=false;
+
+              }
+              console.log(response.data.data);
+            }).catch(function (error) {
+              console.log(error);
+            });
+          }
+        }).catch(function (error){
+          console.log(error);
+        });
+      }else{//删除文件
+        console.log(item.id);
+        console.log(this.breadcrumb_items[this.breadcrumb_items.length-1].id);
+
+        //2.取出fileID（item.id）
+        //3.取出directID(breadcrumb_item[breadcrumb_item.lenth-1].id)
+        this.axios.post('/cloud/user/deleteDorDF',{
+          token:b,
+          type: 2,
+          id:item.id
+        }).then(function(response){
+          console.log(response.data);
+          if(response.data.status===200){
+            alert('删除成功！');
+            me.loading=true;
+            while(me.breadcrumbNum!=1){
+              me.breadcrumb_items.pop();
+              me.breadcrumbNum--;
+            }
+            me.breadcrumb_items[0].disabled=true;
+            me.axios.post('/cloud/user/userCatalogue',{
+              token:b
+            }).then(function (response) {
+              console.log(response.data.data);
+              if(response.data.data!=null){
+                me.item= response.data.data;
+                me.breadcrumb_items[0].id=response.data.data.directID;
+                //console.log( 'fuck');
+                //console.log( me.item);
+                me.files = me.dataSolver(me.item);
+                me.loading=false;
+
+
+              }
+              console.log(response.data.data);
+            }).catch(function (error) {
+              console.log(error);
+            });
+          }
+        }).catch(function (error){
+          console.log(error);
+        })
+
+      }
+
+
       // const index = this.files.indexOf(item)
       // confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
     },
@@ -1277,13 +1367,6 @@ export default {
             me.closeCreateFolder=false;
             alert('新建文件夹成功');
             me.Refresh();
-            me.newFolderDialog=false;
-
-
-
-
-
-
           }).catch(function (error){
             console.log(error);
           })

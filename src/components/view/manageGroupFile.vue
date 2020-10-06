@@ -171,7 +171,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" :disabled="closeAuthorityDialog" text @click="authorityDialog = false">关闭</v-btn>
-              <v-btn  color="blue darken-1" :disabled="settingAuthority"  @click="authoritySettingSubmit()"  text>创建</v-btn>
+              <v-btn  color="blue darken-1" :disabled="settingAuthority"  @click="authoritySettingSubmit()"  text>修改</v-btn>
             </v-card-actions>
         </v-card>
       </v-dialog>
