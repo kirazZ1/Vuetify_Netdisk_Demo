@@ -70,7 +70,43 @@
           </v-row>
         </v-container>
       </v-main>
+      <v-dialog v-model="dialog" persistent max-width="600">
+        <v-card>
+          <v-toolbar
+              color="light-blue darken-4"
+              dark
+              flat
+          >
+            <v-toolbar-title>分 享</v-toolbar-title>
 
+            <v-spacer></v-spacer>
+            <v-tooltip bottom>
+
+            </v-tooltip>
+          </v-toolbar>
+
+            <v-card>
+              <v-data-table
+                  :headers="headers"
+                  :items="fileList"
+                  no-data-text="群组列表为空"
+                  item-key="id"
+                  class="elevation-1"
+                  hide-default-footer
+              >
+                <template v-slot:item.action="{item}">
+                  <v-btn text x-large @click="download(item)" color="primary">下载</v-btn>
+                </template>
+              </v-data-table>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="dialog = false">关闭</v-btn>
+              </v-card-actions>
+            </v-card>
+
+
+        </v-card>
+      </v-dialog>
       <v-footer
           color="light-blue darken-4                                                                                                                                                                                                                                                                                                                                       4"
           app
@@ -144,7 +180,19 @@ export default{
       message:null,
       show1: false,
       checkCode:'',
-      shareName:''
+      shareName:'',
+      dialog:false,
+      headers: [      //表格标题
+        {
+          text: '文件名称',
+          align: 'start',
+          sortable: false,
+          value: 'fileName',
+        },
+        { text: '分享时间', value: 'shareTime' },
+        { text: '操作', value: 'action' },
+      ],
+      fileList:[]
     }
 
   },
@@ -155,9 +203,30 @@ export default{
       }else{
         // this.axios.post('')
         alert('提取码正确！');
+        let me = this;
+        this.axios.post('/cloud/publicVerifyCode',{
+          shareID:this.$route.query.id,
+          code:this.code
+        }).then(function (response){
+          //console.log(response);
+        if(response.data.status===200){
+          let obj={
+            fileName:response.data.data.fileName,
+            shareTime:response.data.data.shareTime,
+            downloadURL:response.data.data.downloadURL
+          }
+            me.fileList.push(obj);
+        }
+        }).catch(function (error){
+          console.log(error);
+        })
+        this.dialog=true;
       }
+    },
+    download(item){
+      window.open(item.downloadURL);
     }
-  }
+  },
 }
 </script>
 <style scoped>

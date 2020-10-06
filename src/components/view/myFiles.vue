@@ -1409,7 +1409,7 @@ export default {
             fileSize:size,
             fileType:type
           }).then(function (response) {
-            console.log(response.data.data);
+            //console.log(response.data.data);
             if(response.data.data.uploadUrl!==''){
              // let reader = new FileReader();
               //let  UrlBase64 = reader.readAsDataURL(document.getElementById("upload").files[0]);
@@ -1442,7 +1442,7 @@ export default {
                       fileSize:size,
                       fileType:type
                     }).then(function(response){
-                      console.log(response.data);
+                      //console.log(response.data);
                       if(response.data.status===200){
                         alert('上传成功');
                         me.loading=true;
@@ -1580,36 +1580,39 @@ export default {
              parentDirectID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
              directName:this.newFolderName
            }).then(function (response){
-             console.log(response);
-             me.createFolderProgress=false;
-             me.clickToNewFolder=false;
-             me.closeCreateFolder=false;
-             alert('新建文件夹成功');
-             while(me.breadcrumbNum!=1){
-               me.breadcrumb_items.pop();
-               me.breadcrumbNum--;
-             }
-             me.breadcrumb_items[0].disabled=true;
-             me.loading=true;
-             me.axios.post('/cloud/user/userCatalogue',{
-               token:b
-             }).then(function (response) {
-               console.log(response.data.data);
-               if(response.data.data!=null){
-                 me.item= response.data.data;
-                 me.breadcrumb_items[0].id=response.data.data.directID;
-                 //console.log( 'fuck');
-                 //console.log( me.item);
-                 me.files = me.dataSolver(me.item);
-                 me.loading=false;
-                 // this.createFolderProgress=false;
-                 // this.clickToNewFolder=false;
-                 // this.closeCreateFolder=false;
+             //console.log(response);
+             if(response.data.status===200){
+               me.createFolderProgress=false;
+               me.clickToNewFolder=false;
+               me.closeCreateFolder=false;
+               alert('新建文件夹成功');
+               while(me.breadcrumbNum!=1){
+                 me.breadcrumb_items.pop();
+                 me.breadcrumbNum--;
                }
-               // console.log(response.data.data);
-             }).catch(function (error) {
-               console.log(error);
-             });
+               me.breadcrumb_items[0].disabled=true;
+               me.loading=true;
+               me.axios.post('/cloud/user/userCatalogue',{
+                 token:b
+               }).then(function (response) {
+                 //console.log(response.data.data);
+                 if(response.data.data!=null){
+                   me.item= response.data.data;
+                   me.breadcrumb_items[0].id=response.data.data.directID;
+                   //console.log( 'fuck');
+                   //console.log( me.item);
+                   me.files = me.dataSolver(me.item);
+                   me.loading=false;
+                   // this.createFolderProgress=false;
+                   // this.clickToNewFolder=false;
+                   // this.closeCreateFolder=false;
+                 }
+                 // console.log(response.data.data);
+               }).catch(function (error) {
+                 console.log(error);
+               });
+             }
+
            }).catch(function (error){
              console.log(error);
            })
@@ -1657,12 +1660,12 @@ export default {
             directID:me.breadcrumb_items[me.breadcrumb_items.length-1].id,
             fileID:downloadFile.id
           }).then(function (response){
-            console.log(response.data.data.data);
+            //console.log(response.data.data.data);
             window.open(response.data.data.data);
           }).catch(function (error){
             console.log(error);
           });
-          console.log(downloadFile);
+          //console.log(downloadFile);
         }
       }
 
@@ -1741,7 +1744,7 @@ export default {
             }).catch(function (error){
               console.log(error);
             })
-          console.log(this.optionItem.type);
+          //console.log(this.optionItem.type);
         }else{
           //alert("移动文件夹!");
           // {
@@ -1755,7 +1758,7 @@ export default {
             newDirectID:item.id,
             directID:this.optionItem.id
           }).then(function (response){
-            console.log(response);
+            //console.log(response);
             if(response.data.status===200){
               alert("移动成功！");
               me.Refresh();
@@ -1791,7 +1794,7 @@ export default {
         this.renameAlert=true;
         this.renameMessage="文件名不能为空";
       }else {
-        console.log(this.optionItem);
+        //console.log(this.optionItem);
         if(this.optionItem.type===null){//文件夹重命名
           //需要进行同目录同名检验
           let flag = 0;
@@ -1822,7 +1825,7 @@ export default {
               directID:this.optionItem.id,
               newName:this.renameFileName
             }).then(function (response){
-              console.log(response);
+              //console.log(response);
               if(response.data.status===200){
                 alert('重命名成功！');
                 console.log(response.data);

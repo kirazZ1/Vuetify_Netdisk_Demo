@@ -193,11 +193,11 @@ export default {
     let a = sessionStorage.getItem('token');
     let b =  a.substring(1,a.length-1);
 
-    console.log(b);
+    //console.log(b);
     this.axios.post('/cloud/user/userInfo',{
       token:b
     }).then(function (response) {
-      console.log(response);
+      //console.log(response);
       me.user.userName=response.data.data.userName;       //用户姓名
       //console.log(me.user.userName);
       if(response.data.data.userSex==="M"){              //用户性别
@@ -225,7 +225,7 @@ export default {
       //设置编辑个人信息中文本域的默认值
       me.userModify.userPhone=me.user.userPhone;
       me.userModify.userEmail=me.user.userEmail;
-      console.log(response);
+      //console.log(response);
     }).catch(function (error) {
       console.log(error);
     });
@@ -241,25 +241,6 @@ export default {
     },
     //退出登录按钮
 
-    timefilters(val) {
-      if (val == null || val == "") {
-        return "暂无时间";
-      } else {
-        let d = new Date(val);   //val 为表格内取到的后台时间
-        console.log(d);
-        let month =
-            d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1;
-        let day = d.getDate() < 10 ? "0" + d.getDate() : d.getDate();
-        // let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
-        // let min = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
-        // let sec = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
-        let times=d.getFullYear() + '-' + month + '-' + day ;
-        return times;
-      }
-
-    },
-
-
     exit(){
       var me=this;
 
@@ -269,7 +250,7 @@ export default {
       this.axios.post('/cloud/user/logout', {
         token:b
       }).then(function (response) {
-        console.log(response.data);
+        //console.log(response.data);
         if(response.data.msg==='退出成功'){
           window.sessionStorage.removeItem('token');
           //重新加载页面（实际上是对全局进行路由跳转）
@@ -300,7 +281,7 @@ export default {
         userMobie:this.userModify.userPhone,
         userEmail:this.userEmail
       }).then(function (response){
-        console.log(response);
+        //console.log(response);
         if(response.data.status===200){
           alert('修改成功!');
           me.user.userEmail=me.userModify.userEmail;

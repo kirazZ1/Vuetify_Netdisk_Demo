@@ -116,7 +116,7 @@ export default {
     this.axios.post('/cloud/user/manage/sup/allManages',{
       token:b
     }).then(function (response){
-      console.log(response.data.data.data);
+      //console.log(response.data.data.data);
       if(response.data.status===200){
         for(let i=0;i<response.data.data.data.length;i++){
           let obj={
@@ -188,7 +188,7 @@ export default {
       this.axios.post('/cloud/user/manage/sup/simpleUser',{
           token:b
       }).then(function (response){
-          console.log(response);
+          //console.log(response);
           if(response.data.status===200){
             if(response.data.data!==null){
               for(let i=0;i<response.data.data.length;i++){
@@ -213,7 +213,7 @@ export default {
       let me = this;
       let a = sessionStorage.getItem('token');
       let b =  a.substring(1,a.length-1);
-      console.log(this.addValue);//this.addValue.length===0
+      //console.log(this.addValue);//this.addValue.length===0
       if(this.addValue.length===0){
         alert('请选择用户');
       }else if(this.addValue.userID===""){
@@ -239,7 +239,7 @@ export default {
               me.axios.post('/cloud/user/manage/sup/allManages',{
                 token:b
               }).then(function (response){
-                console.log(response.data.data.data);
+                //console.log(response.data.data.data);
                 if(response.data.status===200){
                   for(let i=0;i<response.data.data.data.length;i++){
                     let obj={
@@ -299,7 +299,7 @@ export default {
         token:b,
         userId:this.selected[0].userID
       }).then(function (response){
-        console.log(response);
+        //console.log(response);
         if(response.data.status===200){
           alert('移除文档管理员成功!');
           //alert('新增成功!');
@@ -308,7 +308,7 @@ export default {
           me.axios.post('/cloud/user/manage/sup/allManages',{
             token:b
           }).then(function (response){
-            console.log(response.data.data.data);
+            //console.log(response.data.data.data);
             if(response.data.status===200){
               for(let i=0;i<response.data.data.data.length;i++){
                 let obj={

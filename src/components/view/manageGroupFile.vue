@@ -365,7 +365,7 @@ export default {
     this.axios.post('/cloud/user/manage/allDepart',{
       token:b
     }).then(function (response){
-      console.log(response);
+      //console.log(response);
       // "data": [
       //   {
       //     "departId": "e311ec6f2d8e45d0a078b5e5ed529671",
@@ -669,7 +669,7 @@ export default {
       }else{
         this.items=[];
         this.selectGroupUser=[];
-        console.log(this.selected[0].name);
+        //console.log(this.selected[0].name);
         let a = sessionStorage.getItem('token');
         let resultArray=[];
         let me = this;
@@ -678,7 +678,7 @@ export default {
           token:b,
           departID:this.selected[0].id
         }).then(function (response){
-          console.log(response);
+          //console.log(response);
           for(let i=0;i<response.data.data.length;i++){
             let obj={
               name:response.data.data[i].userWorkId+"   "+response.data.data[i].userName,
@@ -732,7 +732,7 @@ export default {
                   name:response.data.data[i].userWorkId+"   "+response.data.data[i].userName,
                   id:response.data.data[i].userId
                 };
-                console.log(obj);
+                //console.log(obj);
                 resultArray.push(obj);
               }
               me.items=resultArray;
@@ -755,7 +755,7 @@ export default {
         token:b,
         departID:this.selected[0].id
       }).then(function (response){
-        console.log(response);
+        //console.log(response);
         if(response.data.status===200){
           if(response.data.data!==null){
             for(let i=0;i<response.data.data.length;i++){
@@ -807,7 +807,7 @@ export default {
           departId:this.selected[0].id,
           userIds:userArray
         }).then(function (response){
-          console.log(response);
+          //console.log(response);
           if(response.data.status===200){
             alert("添加成功！");
             me.AddUser=false;
@@ -824,7 +824,7 @@ export default {
                   name:response.data.data[i].userWorkId+"   "+response.data.data[i].userName,
                   id:response.data.data[i].userId
                 };
-                console.log(obj);
+                //console.log(obj);
                 resultArray.push(obj);
               }
               me.items=resultArray;

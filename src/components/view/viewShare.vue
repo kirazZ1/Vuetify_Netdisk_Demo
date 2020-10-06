@@ -391,7 +391,8 @@ export default {
             type: "",
             status: "",
             shareTime: "",
-            shareLink:""
+            shareLink:"",
+            shareCode:""
           },
       beShareDialogInfo:{
         shareID: "",
@@ -428,13 +429,13 @@ export default {
       // }else{
       //   alert(item.fileName);
       // }
-      this.dialogInfo.shareLink = 'http://localhost:8080/#/Share?id=' + item.shareID;
+      this.dialogInfo.shareLink = 'http://10.61.166.57/#/Share?id=' + item.shareID +"   提取密码："+item.shareCode;
       this.dialogInfo.fileName = item.fileName;
       this.dialogInfo.directName = item.directName;
       this.dialogInfo.type = item.type;
       this.dialogInfo.status = item.status;
       this.dialogInfo.shareTime = item.shareTime;
-
+      this.dialogInfo.shareCode = item.shareCode;
       this.dialogInfo.shareID = item.shareID;
       this.toShareInfoDialog = true;
 
