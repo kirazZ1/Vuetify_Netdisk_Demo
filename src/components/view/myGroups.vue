@@ -738,8 +738,10 @@ export default {
       //item.permission->取出权限字符串
       //  '11111111-文档管理员（上传、下载、删除、创建文件夹、分享、复制、移动、重命名）
       console.log(sessionStorage.getItem('permission'));
-      if(sessionStorage.getItem('permission')===0){
+      console.log(item.permission);
+      if(sessionStorage.getItem('permission')==='0'){
         let permissionArray= Array.prototype.slice.call(item.permission);
+        console.log(permissionArray);
         if(permissionArray[0]==='0'){
           this.uploadPermission=true;
         }else{
@@ -871,34 +873,13 @@ export default {
         this.axios.post('/cloud/user/deleteDorDF',{
           token:b,
           type: 1,
+
           id:item.id
         }).then(function (response){
           console.log(response);
           if(response.data.status===200){
             alert('删除成功！');
-            while(me.breadcrumbNum!=1){
-              me.breadcrumb_items.pop();
-              me.breadcrumbNum--;
-            }
-            me.breadcrumb_items[0].disabled=true;
-            me.loading=true;
-            me.axios.post('/cloud/user/userCatalogue',{
-              token:b
-            }).then(function (response) {
-              console.log(response.data.data);
-              if(response.data.data!=null){
-                me.item= response.data.data;
-                me.breadcrumb_items[0].id=response.data.data.directID;
-                //console.log( 'fuck');
-                //console.log( me.item);
-                me.files = me.dataSolver(me.item);
-                me.loading=false;
-
-              }
-              console.log(response.data.data);
-            }).catch(function (error) {
-              console.log(error);
-            });
+            me.Refresh();
           }
         }).catch(function (error){
           console.log(error);
@@ -912,35 +893,13 @@ export default {
         this.axios.post('/cloud/user/deleteDorDF',{
           token:b,
           type: 2,
+          directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
           id:item.id
         }).then(function(response){
           console.log(response.data);
           if(response.data.status===200){
             alert('删除成功！');
-            me.loading=true;
-            while(me.breadcrumbNum!=1){
-              me.breadcrumb_items.pop();
-              me.breadcrumbNum--;
-            }
-            me.breadcrumb_items[0].disabled=true;
-            me.axios.post('/cloud/user/userCatalogue',{
-              token:b
-            }).then(function (response) {
-              console.log(response.data.data);
-              if(response.data.data!=null){
-                me.item= response.data.data;
-                me.breadcrumb_items[0].id=response.data.data.directID;
-                //console.log( 'fuck');
-                //console.log( me.item);
-                me.files = me.dataSolver(me.item);
-                me.loading=false;
-
-
-              }
-              console.log(response.data.data);
-            }).catch(function (error) {
-              console.log(error);
-            });
+            me.Refresh();
           }
         }).catch(function (error){
           console.log(error);
@@ -1367,6 +1326,7 @@ export default {
             me.clickToNewFolder=false;
             me.closeCreateFolder=false;
             alert('新建文件夹成功');
+            me.newFolderDialog=false;
             me.Refresh();
           }).catch(function (error){
             console.log(error);
@@ -1459,12 +1419,14 @@ export default {
           this.axios.post('/cloud/user/movefile',{
             token:b,
             newDirectID:item.id,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
             fileID:this.optionItem.id
           }).then(function (response){
             console.log(response);
             if(response.data.status===200){
               alert("移动成功！");
               me.Refresh();
+              me.chooseFolder=false;
               me.moveProgress=false;
               me.moveDialog=false;
             }
@@ -1673,6 +1635,7 @@ export default {
           this.axios.post('/cloud/user/copyfile',{
             token:b,
             newDirectID:item.id,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
             fileID:this.optionItem.id
           }).then(function (response){
             console.log(response);

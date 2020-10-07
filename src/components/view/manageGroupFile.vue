@@ -141,6 +141,14 @@
                       color="indigo darken-3"
                       value="1"
                       hide-details
+                      v-show=false
+                  ></v-checkbox>
+                  <v-checkbox
+                      v-model="rename"
+                      label="重命名"
+                      color="indigo darken-3"
+                      value="1"
+                      hide-details
                   ></v-checkbox>
                   <v-checkbox
                       v-model="copy"
@@ -158,13 +166,7 @@
                       value="1"
                       hide-details
                   ></v-checkbox>
-                  <v-checkbox
-                      v-model="rename"
-                      label="重命名"
-                      color="indigo darken-3"
-                      value="1"
-                      hide-details
-                  ></v-checkbox>
+
                 </v-col>
               </v-row>
             </v-container>

@@ -242,7 +242,7 @@ export default {
     //退出登录按钮
 
     exit(){
-      var me=this;
+      let me=this;
 
       let a = sessionStorage.getItem('token');
       let b =a.substring(1,a.length-1);
@@ -250,11 +250,13 @@ export default {
       this.axios.post('/cloud/user/logout', {
         token:b
       }).then(function (response) {
-        //console.log(response.data);
-        if(response.data.msg==='退出成功'){
+        console.log(response.data);
+        if(response.data.status===200){
+          //alert('您已经退出登录!');
           window.sessionStorage.removeItem('token');
-          //重新加载页面（实际上是对全局进行路由跳转）
           me.reload();
+          //重新加载页面（实际上是对全局进行路由跳转）
+
         }else{
           console.log(response);
         }
@@ -276,7 +278,7 @@ export default {
       //let resultArray=[];
       let b =  a.substring(1,a.length-1);
       let me = this;
-      this.axios.post('/cloud/user/manager/sup/updateUserInfo',{
+      this.axios.post('/cloud/user/updateUserInfo',{
         token:b,
         userMobie:this.userModify.userPhone,
         userEmail:this.userEmail

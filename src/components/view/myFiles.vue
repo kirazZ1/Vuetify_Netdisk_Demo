@@ -1073,7 +1073,6 @@ export default {
     },
     clickFile(item){//点击文件触发的事件
       //根据type字段来识别是否为文件夹
-
       //需要考虑的情况：通过搜索访问文件夹
       //搜索了文件夹，但是文件层级又不清楚
       //写的代码必须是在所有场景都可使用的
@@ -1311,11 +1310,8 @@ export default {
                       item[i].children[j].locked=true;
                     }
               }
-         //
               this.folderTreeLock(item[i].children);
-
           }
-
        }
     },
     Back(){
@@ -1529,13 +1525,14 @@ export default {
       }
     },
     moreOptionIcon(item){
-      //console.log(item);
+      console.log(item);
       this.optionItem=item;
+      this.viewFolder=[];
       let test =[];
       test.push(this.item);
       let a =this.folderTreeBuild(test);
       //console.log(11111);
-      //console.log(a);
+      // console.log(a);
       this.viewFolder=a;
       //console.log(this.viewFolder);
 
@@ -1586,6 +1583,7 @@ export default {
                me.clickToNewFolder=false;
                me.closeCreateFolder=false;
                alert('新建文件夹成功');
+               me.newFolderDialog=false;
                while(me.breadcrumbNum!=1){
                  me.breadcrumb_items.pop();
                  me.breadcrumbNum--;
@@ -1624,10 +1622,16 @@ export default {
       // this.optionItem=item;
       if(item.title==='移动到'){
         //alert('移动到');
+
+        //console.log(11111);
+        //console.log(a);
         this.folderTreeLock(this.viewFolder);
         this.moveDialog=true;
       }else if(item.title==='复制到'){
-
+        // let a = [];
+        // this.findFolder=[];
+        // a.push(this.item);
+        // this.findFolderMethod(item.id,a);
         this.copyDialog=true;
       }else{
         //alert('重命名');
@@ -1714,6 +1718,7 @@ export default {
         }
       }else{
           //文件判断同名
+        console.log(this.findFolder[0]);
         for(let i=0;i<this.findFolder[0].includeFiles.length;i++){
           if(this.optionItem.name===this.findFolder[0].includeFiles[i].name&&this.optionItem.type===this.findFolder[0].includeFiles[i].type){
             flag++;
@@ -1728,16 +1733,17 @@ export default {
         this.chooseFolder=true;
         if(this.optionItem.type!==null){
           let me = this;
-
             this.axios.post('/cloud/user/movefile',{
               token:b,
               newDirectID:item.id,
+              directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
               fileID:this.optionItem.id
             }).then(function (response){
               console.log(response);
               if(response.data.status===200){
                 alert("移动成功！");
                 me.Refresh();
+                me.chooseFolder=false;
                 me.moveProgress=false;
                 me.moveDialog=false;
               }
@@ -1746,7 +1752,7 @@ export default {
             })
           //console.log(this.optionItem.type);
         }else{
-          //alert("移动文件夹!");
+          alert("移动文件夹!");
           // {
           //   "token":"c88f4abaa675463787f2b3d2cc91d891",
           //     "newDirectID":"05dc4ebf6fa44c709485ccb881eb3a6e",
@@ -2063,6 +2069,7 @@ export default {
       this.findFolder=[];
       a.push(this.item);
       this.findFolderMethod(item.id,a);
+
       let token = sessionStorage.getItem('token');
       let b =  token.substring(1,token.length-1);
       let flag = 0;
@@ -2076,6 +2083,7 @@ export default {
         }
       }else{
         //文件判断同名
+        console.log(this.findFolder);
         for(let i=0;i<this.findFolder[0].includeFiles.length;i++){
           if(this.optionItem.name===this.findFolder[0].includeFiles[i].name&&this.optionItem.type===this.findFolder[0].includeFiles[i].type){
             flag++;
@@ -2089,11 +2097,12 @@ export default {
         this.copyProgress=true;
         this.chooseFolder=true;
         if(this.optionItem.type!==null){
-          //alert('复制文件');
+          alert('复制文件');
           let me = this;
           this.axios.post('/cloud/user/copyfile',{
             token:b,
             newDirectID:item.id,
+            directID:this.breadcrumb_items[this.breadcrumb_items.length-1].id,
             fileID:this.optionItem.id
           }).then(function (response){
             console.log(response);
@@ -2119,6 +2128,7 @@ export default {
           this.axios.post('/cloud/user/movedepartdirectfile',{
             token:b,
             newDirectID:item.id,
+
             directID:this.optionItem.id
           }).then(function (response){
             console.log(response);

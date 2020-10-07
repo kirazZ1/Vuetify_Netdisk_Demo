@@ -51,7 +51,7 @@ export default {
       this.$nextTick(function (){
         this.isRouterAlive= true;
         this.$router.push({  //核心语句
-          path: '/' ,   //跳转的路径
+          path: '/login' ,   //跳转的路径
         })
       })
     },
