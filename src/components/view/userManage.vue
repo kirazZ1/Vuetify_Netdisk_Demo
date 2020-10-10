@@ -763,6 +763,80 @@ export default {
       console.log(this.userInfo);
     },
     Update(){
+      let me = this;
+      let a = sessionStorage.getItem('token');
+      //let resultArray=[];
+      let b =  a.substring(1,a.length-1);
+      if(this.userUpdateInfo.name===''){
+        alert('姓名不能为空！');
+      }else if(this.userUpdateInfo.sex===''){
+        alert('性别不能为空！');
+      }else if(this.userUpdateInfo.phone===''){
+        alert('手机号不能为空！');
+      }else if(this.userUpdateInfo.email===''){
+        alert('电子邮箱不能为空！');
+      }else if(!/^1[34578]\d{9}$/.test(this.userUpdateInfo.phone)){
+        alert('手机号格式不对，请重新输入！');
+      }else if(!/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(this.userUpdateInfo.email)){
+        alert('电子邮箱格式不对，请重新输入！');
+      }else{
+        this.axios.post('/cloud/user/manage/upUser',{
+          token:b,
+          userId:this.userUpdateInfo.userID,
+          userName:this.userUpdateInfo.name,
+          userSex:this.userUpdateInfo.sex,
+          userMobie:this.userUpdateInfo.phone,
+          userEmail:this.userUpdateInfo.email
+        }).then(function (response){
+          // console.log(sex);
+          console.log(response.data);
+          if(response.data.status===200){
+            alert('修改用户成功！');
+            me.updateUserDialog=false;
+            me.loading=true;
+            let resultArray=[];
+            me.axios.post('/cloud/user/manage/all',{
+              token:b
+            }).then(function (response) {
+              if(response.data.data.length!==0){
+                for(let i=0;i<response.data.data.length;i++){
+                  let obj={
+                    userID:'',
+                    workID:'',
+                    name:'',
+                    sex:'',
+                    phone:'',
+                    email:'',
+                    createTime:'',
+                    status:0
+                  };
+                  obj.userID=response.data.data[i].userId;
+                  obj.workID=response.data.data[i].userWorkId;
+                  obj.name=response.data.data[i].userName;
+                  if(response.data.data[i].userSex==="M"){
+                    obj.sex="男";
+                  }else{
+                    obj.sex="女";
+                  }
+                  obj.phone=response.data.data[i].userMobie;
+                  obj.email=response.data.data[i].userEmail;
+                  obj.createTime=response.data.data[i].userTime;
+                  obj.status=response.data.data[i].userStatus;
+                  resultArray.push(obj);
+                }
+              }
+              me.Info=resultArray;
+              me.tempInfo=resultArray;
+              me.loading=false;
+              // console.log(response.data.data);
+            }).catch(function (error) {
+              console.log(error);
+            });
+          }
+        }).catch(function (error){
+          console.log(error);
+        })
+      }
       // {
       //   "token":"0fe4dbcf4f21451193633d5153470505",
       //     "userId":"04dbcd031e304561abfbd7fa46a986fb",
@@ -772,7 +846,7 @@ export default {
       //     "userMobie":"15767195555",
       //     "userEmail":"5811111123@qq.com"
       // }
-      alert('修改信息');
+      //alert('修改信息');
     },
     importButton(item){
       if(item.title==='单次导入'){

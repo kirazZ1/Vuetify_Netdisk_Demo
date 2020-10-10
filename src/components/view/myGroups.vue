@@ -767,12 +767,12 @@ export default {
         }else{
           this.sharePermission =false;
         }
-        if(permissionArray[5]==='0'){
+        if(permissionArray[6]==='0'){
           this.items[0].permission =true;
         }else{
           this.items[0].permission =false;
         }
-        if(permissionArray[6]==='0'){
+        if(permissionArray[5]==='0'){
           this.items[1].permission =true;
         }else{
           this.items[1].permission =false;

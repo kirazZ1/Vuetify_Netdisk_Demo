@@ -281,7 +281,7 @@ export default {
       this.axios.post('/cloud/user/updateUserInfo',{
         token:b,
         userMobie:this.userModify.userPhone,
-        userEmail:this.userEmail
+        userEmail:this.userModify.userEmail
       }).then(function (response){
         //console.log(response);
         if(response.data.status===200){
