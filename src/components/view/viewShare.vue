@@ -429,7 +429,7 @@ export default {
       // }else{
       //   alert(item.fileName);
       // }
-      this.dialogInfo.shareLink = 'http://10.61.166.57/#/Share?id=' + item.shareID +"   提取密码："+item.shareCode;
+      this.dialogInfo.shareLink = 'http://dgutsu.cn/#/Share?id=' + item.shareID +"   提取密码："+item.shareCode;
       this.dialogInfo.fileName = item.fileName;
       this.dialogInfo.directName = item.directName;
       this.dialogInfo.type = item.type;

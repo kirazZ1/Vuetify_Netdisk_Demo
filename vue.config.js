@@ -5,7 +5,7 @@ module.exports = {
   devServer: {
     proxy: {
      '/': {
-       target: "http://10.61.166.57:8081/",
+       target: "http://dgutsu.cn/",
        ws: true,  //代理websockets
        changeOrigin: true,// 允许跨域
        pathRewrite: {
